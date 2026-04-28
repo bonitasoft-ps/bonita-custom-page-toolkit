@@ -1,0 +1,54 @@
+import { Component, inject } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { AuthStore } from '../stores/auth.store';
+
+@Component({
+  selector: 'app-layout',
+  standalone: true,
+  imports: [RouterOutlet],
+  template: `
+    <div class="layout">
+      <header class="topbar">
+        <h1>Directory Bonita Angular</h1>
+        <div class="actions">
+          <span class="user">{{ store.user()?.displayName }}</span>
+          <button class="logout" (click)="onLogout()">Logout</button>
+        </div>
+      </header>
+      <main class="content">
+        <router-outlet />
+      </main>
+    </div>
+  `,
+  styles: [`
+    .layout { min-height: 100dvh; display: flex; flex-direction: column; }
+    .topbar {
+      background: var(--color-primary, #dd0031);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 64px;
+    }
+    h1 { margin: 0; font-size: 20px; font-weight: 600; }
+    .actions { display: flex; align-items: center; gap: 16px; }
+    .user { color: rgba(255, 255, 255, 0.85); }
+    .logout {
+      background: transparent;
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      padding: 6px 16px;
+      border-radius: 4px;
+    }
+    .logout:hover { background: rgba(255, 255, 255, 0.1); }
+    .content { flex: 1; padding: 24px; }
+  `],
+})
+export class LayoutComponent {
+  store = inject(AuthStore);
+
+  async onLogout() {
+    await this.store.logoutAndRedirect();
+  }
+}

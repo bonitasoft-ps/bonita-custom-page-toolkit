@@ -1,0 +1,25 @@
+# Dependencies and build artifacts (regenerable)
+node_modules/
+dist/
+.angular/
+out-tsc/
+
+# Lockfiles in templates and examples — each install regenerates them.
+# Keep the root package-lock.json for the toolkit itself.
+templates/*/package-lock.json
+examples/*/package-lock.json
+
+# Logs and temp
+*.log
+.vite/
+.cache/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local env files (NEVER commit credentials)
+.env.local
+.env.*.local

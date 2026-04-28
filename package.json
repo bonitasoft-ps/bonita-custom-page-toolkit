@@ -1,0 +1,48 @@
+{
+  "name": "@bonitasoft-ps/bonita-custom-page-toolkit",
+  "version": "0.1.0",
+  "description": "Build Bonita custom pages as React/Vue/Angular SPAs — skills for AI assistants, CLI for humans, MCP tools for both.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "bin": {
+    "bonita-page": "scripts/cli.js"
+  },
+  "scripts": {
+    "scaffold": "node scripts/cli.js scaffold",
+    "wrap": "node scripts/cli.js wrap",
+    "validate": "node scripts/cli.js validate",
+    "build": "node scripts/cli.js build"
+  },
+  "files": [
+    "scripts/",
+    "templates/",
+    "skills/",
+    "docs/",
+    "mcp/",
+    "bonita-page.sh",
+    "bonita-page.bat",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bonitasoft-ps/bonita-custom-page-toolkit.git"
+  },
+  "keywords": [
+    "bonita",
+    "bonitasoft",
+    "custom-page",
+    "spa",
+    "react",
+    "vue",
+    "angular",
+    "scaffold",
+    "mcp"
+  ],
+  "author": "Bonitasoft Professional Services",
+  "dependencies": {
+    "yauzl": "^3.3.0"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/tools.json",
+  "namespace": "bonita_custom_page",
+  "description": "Generate, wrap, validate and build Bonita custom pages (React/Vue/Angular SPAs).",
+  "tools": [
+    {
+      "name": "scaffold_custom_page",
+      "title": "Scaffold a new Bonita custom page",
+      "description": "Create a NEW Bonita custom page project from a framework template. Use when the user wants to start from scratch with React, Vue or Angular.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["framework", "name", "appToken"],
+        "properties": {
+          "framework": {
+            "type": "string",
+            "enum": ["react", "vue", "angular"],
+            "description": "Frontend framework to use."
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Internal page name in camelCase. Becomes 'custompage_<name>' in page.properties and the ZIP filename."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Label shown in Bonita admin (e.g. 'Invoice Dashboard'). Defaults to name if omitted."
+          },
+          "appToken": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Bonita Application token. The page will be served at /bonita/apps/{appToken}/{pageToken}/."
+          },
+          "pageToken": {
+            "type": "string",
+            "default": "home",
+            "description": "Page token within the application. Default: 'home'."
+          },
+          "targetDir": {
+            "type": "string",
+            "description": "Absolute path where the project should be created. Default: ./<name> in the current working directory."
+          }
+        }
+      }
+    },
+    {
+      "name": "wrap_existing_app",
+      "title": "Wrap an existing SPA into a Bonita custom page",
+      "description": "Take an EXISTING React/Vue/Angular project and add the Bonita custom-page layer on top: page.properties, packaging script, multilingual deploy docs, build.sh/build.bat. Verifies critical configs (Vite base path, hash routing, withCredentials) and warns if anything looks off without modifying the user's app code.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["targetDir", "name", "appToken"],
+        "properties": {
+          "framework": {
+            "type": "string",
+            "enum": ["react", "vue", "angular"],
+            "description": "If omitted, detected from package.json / angular.json."
+          },
+          "targetDir": {
+            "type": "string",
+            "description": "Absolute path of the existing project to wrap."
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Internal page name in camelCase."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Label shown in Bonita admin."
+          },
+          "appToken": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+          },
+          "pageToken": {
+            "type": "string",
+            "default": "home"
+          }
+        }
+      }
+    },
+    {
+      "name": "validate_custom_page_zip",
+      "title": "Validate a custom-page ZIP",
+      "description": "Open a ZIP and verify it has the layout Bonita requires: page.properties at root with valid name/contentType, resources/ directory, resources/index.html. Returns a JSON report. Use before uploading to catch packaging mistakes early.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["zipPath"],
+        "properties": {
+          "zipPath": {
+            "type": "string",
+            "description": "Absolute path to a page-*.zip file."
+          }
+        }
+      }
+    },
+    {
+      "name": "build_custom_page",
+      "title": "Build a custom-page project",
+      "description": "Run npm install (if needed) and the project's build:bonita / dist script in the given directory. Returns the path to the produced ZIP and accompanying docs.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["projectDir"],
+        "properties": {
+          "projectDir": {
+            "type": "string",
+            "description": "Absolute path to a Bonita custom-page project (must have package.json and a build:bonita or dist script)."
+          }
+        }
+      }
+    },
+    {
+      "name": "get_deployment_guide",
+      "title": "Get the Bonita deployment guide",
+      "description": "Return the step-by-step deployment guide for a given Bonita version. Use when the user asks how to upload a custom page to Bonita.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "enum": ["7.x", "2025.x"],
+            "default": "2025.x",
+            "description": "Bonita version. Default: 2025.x (current). The 7.x guide uses the legacy Portal UI."
+          }
+        }
+      }
+    },
+    {
+      "name": "list_custom_page_examples",
+      "title": "List bundled examples",
+      "description": "Return a list of the example projects shipped with the toolkit: React/Vue/Angular task viewers and directory-bonita variants. Useful for showing the user a ready-to-deploy starting point.",
+      "inputSchema": { "type": "object", "properties": {} }
+    }
+  ]
+}

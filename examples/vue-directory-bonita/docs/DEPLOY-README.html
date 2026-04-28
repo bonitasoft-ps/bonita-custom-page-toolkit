@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deploy — Directory Bonita Vue</title>
+<style>
+  :root {
+    --bg: #f3f3f1;
+    --fg: #303133;
+    --muted: #606266;
+    --primary: #722ed1;
+    --border: #e4e7ed;
+    --code-bg: #f4f4f7;
+    --warn-bg: #fff8e1;
+    --warn-border: #f6c948;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.55; }
+  header { background: var(--primary); color: white; padding: 24px 32px; }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  header p { margin: 6px 0 0; opacity: .85; }
+  nav.langs { background: white; border-bottom: 1px solid var(--border); padding: 12px 32px; position: sticky; top: 0; z-index: 10; display: flex; gap: 8px; }
+  nav.langs button { padding: 6px 14px; background: white; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font: inherit; color: var(--muted); }
+  nav.langs button.active { background: var(--primary); color: white; border-color: var(--primary); }
+  main { max-width: 880px; margin: 0 auto; padding: 32px; background: white; min-height: 70dvh; }
+  section[lang] { display: none; }
+  section[lang].active { display: block; }
+  h2 { margin-top: 0; font-size: 22px; }
+  h3 { margin-top: 28px; font-size: 17px; color: var(--muted); }
+  code { background: var(--code-bg); padding: 1px 6px; border-radius: 3px; font-size: 13px; font-family: "Consolas", "Monaco", monospace; }
+  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.45; border: 1px solid var(--border); }
+  pre code { background: transparent; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { background: var(--code-bg); font-size: 13px; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn-border); padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+  .warn strong { color: #8b6914; }
+  .url { word-break: break-all; }
+  ol, ul { padding-left: 22px; }
+  ol li, ul li { margin-bottom: 4px; }
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Deploying <code>page-appDirectoryBonitaVueHome.zip</code></h1>
+    <p>Bonita 2025.x custom page — step-by-step in English / Français / Castellano</p>
+  </header>
+
+  <nav class="langs" role="tablist">
+    <button data-lang="en" class="active">English</button>
+    <button data-lang="fr">Français</button>
+    <button data-lang="es">Castellano</button>
+  </nav>
+
+  <main>
+    <!-- ─── ENGLISH ───────────────────────────────────────────── -->
+    <section lang="en" class="active">
+      <h2>English</h2>
+
+      <h3>What you have</h3>
+      <ul>
+        <li><code>page-appDirectoryBonitaVueHome.zip</code> — the Bonita custom page (a Vue 3 SPA)</li>
+        <li>This README and the matching markdown file (informational, do <strong>not</strong> upload to Bonita)</li>
+      </ul>
+
+      <h3>Prerequisites</h3>
+      <ul>
+        <li>A running Bonita 2025.x instance</li>
+        <li>An admin user (default Studio: <code>install</code> / <code>install</code>)</li>
+        <li>The host and port of your instance (example: <code>http://localhost:8080</code>)</li>
+      </ul>
+
+      <h3>Step 1 — Login</h3>
+      <pre><code class="url">http://localhost:8080/bonita/login.jsp</code></pre>
+      <p>Sign in with admin credentials. Replace the host/port with yours.</p>
+
+      <h3>Step 2 — Upload the page resource</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/resource-list/</code></pre>
+      <p>Click <strong>+ Add a resource</strong>, select <code>page-appDirectoryBonitaVueHome.zip</code>, confirm. The page appears with displayName <em>Directory Bonita Vue Home</em>.</p>
+      <p><em>Tenant admin equivalent: <code>/bonita/apps/adminAppEEBonita/admin-resource-list/</code></em></p>
+
+      <h3>Step 3 — Create a new application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/application-list/</code></pre>
+      <p>Click <strong>+ Create application</strong> and fill:</p>
+      <table>
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>Token</td><td><code>appDirectoryBonitaVue</code></td></tr>
+        <tr><td>Display name</td><td>Directory Bonita Vue</td></tr>
+        <tr><td>Profile</td><td>the profile your users have</td></tr>
+        <tr><td><strong>Layout</strong></td><td><strong><code>Layout Without Menu</code></strong></td></tr>
+      </table>
+      <div class="warn">
+        <strong>Important — pick "Layout Without Menu".</strong> The default Bonita layout wraps every page with a header and a side menu. For a full-screen SPA you must select <strong>Layout Without Menu</strong> so the page fills the entire viewport. This is the most common cause of "the app is squeezed inside the Bonita admin chrome".
+      </div>
+      <p>Save. Note the application's <code>id</code> (visible in the URL after saving, e.g. <code>id=14</code>).</p>
+
+      <h3>Step 4 — Bind the page to the application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/admin-application-details/?id={id}</code></pre>
+      <ol>
+        <li>Open the <strong>Pages</strong> section</li>
+        <li>Click <strong>+ Add page</strong></li>
+        <li>Select <code>Directory Bonita Vue Home</code></li>
+        <li>Set <strong>Token</strong> to <code>home</code></li>
+        <li>Save (optionally mark as the application's <strong>Home page</strong>)</li>
+      </ol>
+
+      <h3>Step 5 — Open the application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/appDirectoryBonitaVue/home/?_l=en</code></pre>
+      <p>The Vue 3 SPA loads, auto-detects your Bonita session, and shows the task list. <strong>Listo.</strong></p>
+
+      <h3>Updating later</h3>
+      <p>Build a new ZIP with the same <code>page.properties.name</code>. Upload via the same resource-list — Bonita prompts to replace it. Application bindings are preserved. Force-refresh (<code>Ctrl+F5</code>) to bust browser cache.</p>
+
+      <h3>Troubleshooting</h3>
+      <table>
+        <tr><th>Symptom</th><th>Fix</th></tr>
+        <tr><td><code>/bonita/portal/admin</code> → 404</td><td>Old Portal is gone in 2025.x. Use the URLs above.</td></tr>
+        <tr><td>Resource-list empty / 403</td><td>User lacks Admin profile. Login as <code>install</code> or grant the right profile.</td></tr>
+        <tr><td>Page imports but <code>/apps/appDirectoryBonitaVue/home/</code> 404s</td><td>Check application token, page token = <code>home</code>, profile assignment.</td></tr>
+        <tr><td>App wrapped by admin chrome</td><td>Pick <strong>Layout Without Menu</strong>.</td></tr>
+        <tr><td>Blank screen</td><td>Browser cache (Ctrl+F5) or wrong build (<code>unzip -l</code> verify).</td></tr>
+        <tr><td>500 on <code>/API/bpm/humanTask</code></td><td>Already fixed (uses <code>&amp;o=…&amp;o=…</code> not comma).</td></tr>
+      </table>
+    </section>
+
+    <!-- ─── FRANÇAIS ──────────────────────────────────────────── -->
+    <section lang="fr">
+      <h2>Français</h2>
+
+      <h3>Contenu de la livraison</h3>
+      <ul>
+        <li><code>page-appDirectoryBonitaVueHome.zip</code> — la custom page Bonita (SPA Vue 3)</li>
+        <li>Ce README et le fichier markdown associé (informatifs, à <strong>ne pas</strong> uploader dans Bonita)</li>
+      </ul>
+
+      <h3>Prérequis</h3>
+      <ul>
+        <li>Une instance Bonita 2025.x démarrée</li>
+        <li>Un utilisateur administrateur (Studio par défaut : <code>install</code> / <code>install</code>)</li>
+        <li>Le host et le port de votre instance (ex. : <code>http://localhost:8080</code>)</li>
+      </ul>
+
+      <h3>Étape 1 — Connexion</h3>
+      <pre><code class="url">http://localhost:8080/bonita/login.jsp</code></pre>
+      <p>Connectez-vous avec les identifiants administrateur. Remplacez host/port par les vôtres.</p>
+
+      <h3>Étape 2 — Uploader le ZIP de la page</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/resource-list/</code></pre>
+      <p>Cliquez sur <strong>+ Ajouter une ressource</strong>, sélectionnez <code>page-appDirectoryBonitaVueHome.zip</code>, validez. La page apparaît avec le nom <em>Directory Bonita Vue Home</em>.</p>
+      <p><em>Équivalent Admin tenant : <code>/bonita/apps/adminAppEEBonita/admin-resource-list/</code></em></p>
+
+      <h3>Étape 3 — Créer une nouvelle application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/application-list/</code></pre>
+      <p>Cliquez sur <strong>+ Créer une application</strong> et renseignez :</p>
+      <table>
+        <tr><th>Champ</th><th>Valeur</th></tr>
+        <tr><td>Token</td><td><code>appDirectoryBonitaVue</code></td></tr>
+        <tr><td>Display name</td><td>Directory Bonita Vue</td></tr>
+        <tr><td>Profile</td><td>le profil de vos utilisateurs</td></tr>
+        <tr><td><strong>Layout</strong></td><td><strong><code>Layout Without Menu</code></strong></td></tr>
+      </table>
+      <div class="warn">
+        <strong>Important — choisissez « Layout Without Menu ».</strong> Le layout Bonita par défaut entoure chaque page d'un header et d'un menu latéral. Pour une SPA en plein écran, vous <strong>devez</strong> sélectionner <strong>Layout Without Menu</strong> pour que la page occupe toute la fenêtre. C'est la cause la plus fréquente de « l'application est compressée dans la chrome admin Bonita ».
+      </div>
+      <p>Sauvegardez. Notez l'<code>id</code> de l'application (visible dans l'URL après sauvegarde, ex. <code>id=14</code>).</p>
+
+      <h3>Étape 4 — Lier la page à l'application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/admin-application-details/?id={id}</code></pre>
+      <ol>
+        <li>Ouvrez la section <strong>Pages</strong></li>
+        <li>Cliquez sur <strong>+ Ajouter une page</strong></li>
+        <li>Sélectionnez <code>Directory Bonita Vue Home</code></li>
+        <li>Renseignez le <strong>Token</strong> : <code>home</code></li>
+        <li>Sauvegardez (optionnel : marquez comme <strong>page d'accueil</strong>)</li>
+      </ol>
+
+      <h3>Étape 5 — Ouvrir l'application</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/appDirectoryBonitaVue/home/?_l=fr</code></pre>
+      <p>La SPA Vue 3 se charge, détecte automatiquement la session Bonita et affiche la liste des tâches. <strong>C'est terminé.</strong></p>
+
+      <h3>Mise à jour ultérieure</h3>
+      <p>Construisez un nouveau ZIP avec le même <code>page.properties.name</code>. Uploadez-le via la même resource-list — Bonita propose de le remplacer. Les liaisons sont préservées. Rafraîchissement forcé (<code>Ctrl+F5</code>) pour vider le cache.</p>
+
+      <h3>Dépannage</h3>
+      <table>
+        <tr><th>Symptôme</th><th>Solution</th></tr>
+        <tr><td><code>/bonita/portal/admin</code> → 404</td><td>L'ancien Portal n'existe plus. Utilisez les URLs ci-dessus.</td></tr>
+        <tr><td>Resource-list vide / 403</td><td>Profil insuffisant. Connectez-vous en <code>install</code> ou demandez le bon profil.</td></tr>
+        <tr><td>Page importée mais 404 sur l'app</td><td>Vérifiez token application, token page = <code>home</code>, profil utilisateur.</td></tr>
+        <tr><td>App entourée du chrome admin</td><td>Sélectionnez <strong>Layout Without Menu</strong>.</td></tr>
+        <tr><td>Écran blanc</td><td>Cache navigateur (Ctrl+F5) ou mauvais build (vérifier <code>unzip -l</code>).</td></tr>
+        <tr><td>500 sur <code>/API/bpm/humanTask</code></td><td>Déjà corrigé (<code>&amp;o=…&amp;o=…</code> au lieu de virgule).</td></tr>
+      </table>
+    </section>
+
+    <!-- ─── CASTELLANO ────────────────────────────────────────── -->
+    <section lang="es">
+      <h2>Castellano</h2>
+
+      <h3>Qué contiene la entrega</h3>
+      <ul>
+        <li><code>page-appDirectoryBonitaVueHome.zip</code> — la custom page de Bonita (SPA Vue 3)</li>
+        <li>Este README y el fichero markdown asociado (informativos, <strong>no</strong> subir a Bonita)</li>
+      </ul>
+
+      <h3>Requisitos previos</h3>
+      <ul>
+        <li>Una instancia de Bonita 2025.x en ejecución</li>
+        <li>Un usuario administrador (Studio por defecto: <code>install</code> / <code>install</code>)</li>
+        <li>El host y el puerto de tu Bonita (ej.: <code>http://localhost:8080</code>)</li>
+      </ul>
+
+      <h3>Paso 1 — Iniciar sesión</h3>
+      <pre><code class="url">http://localhost:8080/bonita/login.jsp</code></pre>
+      <p>Inicia sesión con credenciales de administrador. Sustituye host/puerto por los tuyos.</p>
+
+      <h3>Paso 2 — Subir el ZIP de la página</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/resource-list/</code></pre>
+      <p>Haz clic en <strong>+ Añadir un recurso</strong>, selecciona <code>page-appDirectoryBonitaVueHome.zip</code>, confirma. La página aparece con el nombre <em>Directory Bonita Vue Home</em>.</p>
+      <p><em>Equivalente Admin tenant: <code>/bonita/apps/adminAppEEBonita/admin-resource-list/</code></em></p>
+
+      <h3>Paso 3 — Crear una nueva aplicación</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/application-list/</code></pre>
+      <p>Haz clic en <strong>+ Crear aplicación</strong> y rellena:</p>
+      <table>
+        <tr><th>Campo</th><th>Valor</th></tr>
+        <tr><td>Token</td><td><code>appDirectoryBonitaVue</code></td></tr>
+        <tr><td>Nombre visible</td><td>Directory Bonita Vue</td></tr>
+        <tr><td>Perfil</td><td>el perfil que tienen tus usuarios</td></tr>
+        <tr><td><strong>Layout</strong></td><td><strong><code>Layout Without Menu</code></strong></td></tr>
+      </table>
+      <div class="warn">
+        <strong>Importante — elige "Layout Without Menu".</strong> El layout por defecto de Bonita envuelve cada página con un header y un menú lateral. Para una SPA a pantalla completa <strong>debes</strong> seleccionar <strong>Layout Without Menu</strong> para que la página ocupe toda la ventana. Es la causa más frecuente del síntoma "la aplicación aparece comprimida dentro del chrome de admin de Bonita".
+      </div>
+      <p>Guarda. Anota el <code>id</code> de la aplicación (visible en la URL tras guardar, p.ej. <code>id=14</code>).</p>
+
+      <h3>Paso 4 — Vincular la página a la aplicación</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/superAdminAppBonita/admin-application-details/?id={id}</code></pre>
+      <ol>
+        <li>Abre la sección <strong>Pages</strong></li>
+        <li>Haz clic en <strong>+ Añadir página</strong></li>
+        <li>Selecciona <code>Directory Bonita Vue Home</code></li>
+        <li>Pon el <strong>Token</strong> a <code>home</code></li>
+        <li>Guarda (opcional: marca como <strong>página de inicio</strong>)</li>
+      </ol>
+
+      <h3>Paso 5 — Abrir la aplicación</h3>
+      <pre><code class="url">http://localhost:8080/bonita/apps/appDirectoryBonitaVue/home/?_l=es</code></pre>
+      <p>La SPA Vue 3 se carga, detecta automáticamente la sesión de Bonita y muestra la lista de tareas. <strong>Listo.</strong></p>
+
+      <h3>Actualizar la página después</h3>
+      <p>Construye un nuevo ZIP con el mismo <code>page.properties.name</code>. Súbelo por la misma resource-list — Bonita pregunta si quieres reemplazarlo. Los vínculos se conservan. Refresco forzado (<code>Ctrl+F5</code>) para limpiar la caché.</p>
+
+      <h3>Resolución de problemas</h3>
+      <table>
+        <tr><th>Síntoma</th><th>Solución</th></tr>
+        <tr><td><code>/bonita/portal/admin</code> → 404</td><td>El Portal antiguo desapareció. Usa las URLs de arriba.</td></tr>
+        <tr><td>Resource-list vacía / 403</td><td>Perfil insuficiente. Inicia sesión como <code>install</code> o pide el perfil correcto.</td></tr>
+        <tr><td>Página importada pero 404 en la app</td><td>Comprueba token de aplicación, token de página = <code>home</code>, perfil del usuario.</td></tr>
+        <tr><td>App envuelta en el chrome admin</td><td>Selecciona <strong>Layout Without Menu</strong>.</td></tr>
+        <tr><td>Pantalla en blanco</td><td>Caché del navegador (Ctrl+F5) o build defectuoso (verifica <code>unzip -l</code>).</td></tr>
+        <tr><td>500 en <code>/API/bpm/humanTask</code></td><td>Ya corregido (<code>&amp;o=…&amp;o=…</code> en lugar de coma).</td></tr>
+      </table>
+    </section>
+  </main>
+
+  <footer>
+    Generated by <code>npm run dist</code> from <code>examples/react-directory-bonita/</code>
+  </footer>
+
+<script>
+  const buttons = document.querySelectorAll('nav.langs button');
+  const sections = document.querySelectorAll('main section[lang]');
+  buttons.forEach(btn => btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    sections.forEach(s => s.classList.toggle('active', s.getAttribute('lang') === lang));
+    document.documentElement.lang = lang;
+  }));
+</script>
+</body>
+</html>
