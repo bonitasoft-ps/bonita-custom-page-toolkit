@@ -1,0 +1,241 @@
+/* ─── Layout / header ─────────────────────────────────────── */
+
+.rbd-layout {
+  background: #f3f3f1;
+}
+
+.rbd-header {
+  background: linear-gradient(90deg, #722ED1 0%, #4f1d97 100%) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px !important;
+  height: 72px !important;
+  line-height: 1.2 !important;
+  box-shadow: 0 2px 12px rgba(114, 46, 209, 0.18);
+}
+
+.rbd-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: white;
+}
+
+.rbd-brand-icon {
+  font-size: 24px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.rbd-brand-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: white;
+}
+
+.rbd-brand-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.rbd-icon-btn {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.rbd-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rbd-user-chip:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.rbd-user-text {
+  line-height: 1.2;
+}
+
+.rbd-user-name {
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.rbd-user-role {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rbd-content {
+  padding: 24px 32px !important;
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ─── Dashboard ───────────────────────────────────────────── */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.kpi-row {
+  margin: 0 !important;
+}
+.kpi-row-secondary {
+  margin: 0 !important;
+}
+
+.kpi-card {
+  border-radius: 10px !important;
+  border: 1px solid #ececec;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+}
+.kpi-card.kpi-warn {
+  border-color: #f6c948;
+  background: linear-gradient(180deg, #fff8e1 0%, white 100%);
+}
+.kpi-card.kpi-mini .ant-card-body {
+  padding: 16px 20px !important;
+}
+.kpi-sub {
+  display: block;
+  font-size: 12px;
+  margin-top: 6px;
+}
+
+/* ─── Distribution chart ──────────────────────────────────── */
+
+.distribution-card {
+  border-radius: 10px !important;
+  border: 1px solid #ececec;
+}
+
+.distribution-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dist-row {
+  display: grid;
+  grid-template-columns: 110px 1fr 32px;
+  align-items: center;
+  gap: 12px;
+}
+
+.dist-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.priority-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dist-bar-track {
+  height: 16px;
+  background: #f4f4f7;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dist-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s ease-out;
+  min-width: 2px;
+}
+
+.dist-count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: #303133;
+}
+
+/* ─── Tabs / data area ────────────────────────────────────── */
+
+.data-tabs-card {
+  border-radius: 10px !important;
+  border: 1px solid #ececec;
+}
+
+.data-tabs-card .ant-tabs-tab {
+  font-weight: 500;
+}
+
+/* ─── Tasks table ─────────────────────────────────────────── */
+
+.task-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.task-cell .priority-dot {
+  margin-top: 6px;
+}
+
+.task-name {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-desc {
+  display: block;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.overdue-tag {
+  margin-left: 0 !important;
+}
+
+.row-overdue td {
+  background: #fff5f4 !important;
+}
+.row-overdue:hover td {
+  background: #ffece9 !important;
+}
+
+/* ─── Detail modal ────────────────────────────────────────── */
+
+.task-detail .ant-typography + div {
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.detail-progress {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}

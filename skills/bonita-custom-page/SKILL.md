@@ -25,7 +25,7 @@ When the user asks to "create a Bonita custom page" or similar, gather these ans
 | 4 | What is the **Bonita Application token**? (e.g. `myApp`) | The `{appToken}` in `/bonita/apps/{appToken}/{pageToken}/`. The user creates this in Bonita admin too. |
 | 5 | Is this a **brand-new project** or wrapping an **existing** SPA? | New → `bonita-page scaffold`. Existing → `bonita-page wrap`. |
 
-### Ask if relevant (6-10)
+### Ask if relevant (6-11)
 
 | # | Question | Notes |
 |---|----------|-------|
@@ -34,12 +34,34 @@ When the user asks to "create a Bonita custom page" or similar, gather these ans
 | 8 | Bonita version: **2025.x** (current) or **7.x** (legacy)? | Affects deployment URLs. Default to 2025.x and confirm. |
 | 9 | Do they want a **component library** (AntD, Element Plus, ng-zorro, ...)? | Adds 200-300 KB to the bundle. For minimal Bonita pages, plain CSS is often enough. |
 | 10 | Should the page be **full-screen** (Layout Without Menu) or **inside Bonita's chrome** (default layout)? | Full-screen is ~99% of the time. Default to "Layout Without Menu" and confirm. |
+| 11 | Bonita port — **default 8080**, or different? | Default `localhost:8080` works for most installs (Studio, Tomcat bundle, Docker). Some Subscription deployments use other ports (e.g. `:29106`). If the user knows their port and it's NOT 8080, set the proxy target accordingly in `vite.config.ts` (Vite frameworks) or `proxy.conf.json` (Angular). |
 
 ### What you SHOULD NOT ask
 
-- Don't ask which port Bonita runs on. Default the proxy to `localhost:8080`. The user can change it later in `vite.config.ts` or `proxy.conf.json`.
 - Don't ask about CSRF / hash routing / page.properties format. Those are universal rules — apply them automatically.
 - Don't ask about how to compile or package. The toolkit's CLI handles it.
+
+### Port detail — extending question 11
+
+When the user mentions a non-default Bonita port (anywhere — error logs, URLs they paste, deployment notes), make sure to set it BEFORE the user starts dev mode. The proxy target isn't autodetected; if it's wrong, every API call returns 502 in dev (in production the SPA is on Bonita's own origin so the port doesn't matter for the deployed page).
+
+For a Vite-based framework (React/Vue/Svelte/Solid/Qwik):
+```ts
+// vite.config.ts
+server: {
+  proxy: {
+    '/bonita': { target: 'http://localhost:8080', changeOrigin: true, secure: false },
+    //                                ^^^^ ← change here
+  },
+},
+```
+
+For Angular:
+```json
+// proxy.conf.json
+{ "/bonita": { "target": "http://localhost:8080", ... } }
+//                                ^^^^ ← change here
+```
 
 ### What to do with the answers
 
