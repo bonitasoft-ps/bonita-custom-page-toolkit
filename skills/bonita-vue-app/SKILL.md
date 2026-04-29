@@ -30,9 +30,22 @@ This skill covers only what is **Vue-specific**.
 
 When this skill activates:
 
-1. **Determine the action**: scaffold a new app, integrate Bonita auth into an existing app, or explain a pattern?
-2. **Read the foundational skill**: `../bonita-custom-page/SKILL.md` for the rules every Bonita SPA must follow.
-3. **Apply Vue idioms**: use the templates in `references/` for code samples.
+1. **Determine the action**: scaffold a new app, wrap an existing one, or explain a pattern?
+2. **Ask the questions in §"Questions to ask before generating"** — don't assume.
+3. **Read the foundational skill**: `../bonita-custom-page/SKILL.md`.
+4. **Apply Vue idioms**: use the templates in `references/` for code samples.
+
+## Questions to ask before generating
+
+(See `../bonita-custom-page/SKILL.md` §"Questions to ask BEFORE doing anything" for the universal checklist.)
+
+Vue-specific add-ons:
+
+| # | Question | Notes |
+|---|----------|-------|
+| V1 | Component library: **Element Plus**, **Naive UI**, **PrimeVue**, **Vuetify**, or **none**? | Element Plus is a safe default. PrimeVue if the user wants polished defaults. None if bundle size is critical. |
+| V2 | i18n needed? **vue-i18n** or skip? | vue-i18n adds ~30 KB gzip. Skip unless multi-locale is a real requirement. |
+| V3 | Composition API only or also Options API? | Default Composition API + `<script setup>`. Don't mix unless bridging a Vue 2 codebase. |
 
 ## Scaffolding a new project
 

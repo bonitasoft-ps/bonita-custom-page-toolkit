@@ -30,9 +30,23 @@ This skill covers only what is **Angular-specific**.
 
 When this skill activates:
 
-1. **Determine the action**: scaffold a new app, integrate Bonita auth into an existing app, or explain a pattern?
-2. **Read the foundational skill**: `../bonita-custom-page/SKILL.md` for the rules every Bonita SPA must follow.
-3. **Apply Angular idioms**: use the templates in `references/` for code samples.
+1. **Determine the action**: scaffold a new app, wrap an existing one, or explain a pattern?
+2. **Ask the questions in §"Questions to ask before generating"** — don't assume.
+3. **Read the foundational skill**: `../bonita-custom-page/SKILL.md`.
+4. **Apply Angular idioms**: use the templates in `references/` for code samples. ALWAYS apply rule F (APP_INITIALIZER for the session probe) — failure to do so causes every login to bounce to /login.
+
+## Questions to ask before generating
+
+(See `../bonita-custom-page/SKILL.md` §"Questions to ask BEFORE doing anything" for the universal checklist.)
+
+Angular-specific add-ons:
+
+| # | Question | Notes |
+|---|----------|-------|
+| A1 | **Standalone components** (default in Angular 17+) or NgModule-based? | Default standalone. NgModule only if bridging legacy code. |
+| A2 | UI library: **Angular Material**, **ng-zorro**, **PrimeNG**, or **none**? | ng-zorro for AntD-style. Material for Material Design. PrimeNG for the most components. None for minimal bundle. |
+| A3 | **Signals or RxJS** for state? | Default signals (Angular 17+). RxJS for streams (HTTP responses, etc.). |
+| A4 | Tests? **Karma+Jasmine** (default), **Jest**, or none? | Default none for a small custom page. |
 
 ## Scaffolding a new project
 

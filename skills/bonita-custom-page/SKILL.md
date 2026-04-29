@@ -1,15 +1,53 @@
 ---
 name: bonita-custom-page
-description: Foundational knowledge for building any SPA (React, Vue, Angular) as a Bonita custom page. Covers the architecture, ZIP layout, page.properties, Bonita REST APIs (auth, session, CSRF), iframe constraints and deployment. Loaded by the framework-specific skills (bonita-react-app, bonita-vue-app, bonita-angular-app) to avoid duplicating the parts that are identical across frameworks.
+description: Foundational knowledge for building any SPA (React, Vue, Angular, Svelte, Solid, Qwik) as a Bonita custom page. Covers the architecture, ZIP layout, page.properties, Bonita REST APIs (auth, session, CSRF), iframe constraints and deployment. Loaded by the framework-specific skills (bonita-react-app, bonita-vue-app, bonita-angular-app, bonita-svelte-app, bonita-solid-app, bonita-qwik-app) to avoid duplicating the parts that are identical across frameworks.
 allowed-tools: Read, Grep, Glob
 user-invocable: false
 ---
 
 # Bonita Custom Page — Foundational Skill
 
-You are an expert in deploying single-page applications as Bonita custom pages. This skill contains the **framework-agnostic** knowledge — every Bonita SPA, regardless of React/Vue/Angular, must follow the same rules around routing, paths, auth, packaging and deployment.
+You are an expert in deploying single-page applications as Bonita custom pages. This skill contains the **framework-agnostic** knowledge — every Bonita SPA, regardless of framework, must follow the same rules around routing, paths, auth, packaging and deployment.
 
-The framework-specific skills (`bonita-react-app`, `bonita-vue-app`, `bonita-angular-app`) reference this skill for the common parts.
+The framework-specific skills (`bonita-react-app`, `bonita-vue-app`, `bonita-angular-app`, `bonita-svelte-app`, `bonita-solid-app`, `bonita-qwik-app`) reference this skill for the common parts.
+
+## Questions to ask BEFORE doing anything
+
+When the user asks to "create a Bonita custom page" or similar, gather these answers first. **Don't assume** — ask. Most failed Bonita deployments come from missed defaults.
+
+### Always ask these (1-5)
+
+| # | Question | Notes |
+|---|----------|-------|
+| 1 | **Which framework**? React, Vue, Angular, Svelte, Solid, or Qwik? | If they're unsure, recommend based on team experience and `COMPARISON.md`. Don't push your favourite. |
+| 2 | What is the **page name** in camelCase? (e.g. `invoiceDashboard`) | Becomes `custompage_<name>` and the ZIP filename. Must match `[a-zA-Z][a-zA-Z0-9]*`. |
+| 3 | What is the **display name** shown in Bonita admin? | Free text. Defaults to the page name. |
+| 4 | What is the **Bonita Application token**? (e.g. `myApp`) | The `{appToken}` in `/bonita/apps/{appToken}/{pageToken}/`. The user creates this in Bonita admin too. |
+| 5 | Is this a **brand-new project** or wrapping an **existing** SPA? | New → `bonita-page scaffold`. Existing → `bonita-page wrap`. |
+
+### Ask if relevant (6-10)
+
+| # | Question | Notes |
+|---|----------|-------|
+| 6 | What is the **page token** within the application? | Default: `home`. The `{pageToken}` in the URL. |
+| 7 | Where should the project live? (target directory) | Default: `./{name}` from the current working directory. |
+| 8 | Bonita version: **2025.x** (current) or **7.x** (legacy)? | Affects deployment URLs. Default to 2025.x and confirm. |
+| 9 | Do they want a **component library** (AntD, Element Plus, ng-zorro, ...)? | Adds 200-300 KB to the bundle. For minimal Bonita pages, plain CSS is often enough. |
+| 10 | Should the page be **full-screen** (Layout Without Menu) or **inside Bonita's chrome** (default layout)? | Full-screen is ~99% of the time. Default to "Layout Without Menu" and confirm. |
+
+### What you SHOULD NOT ask
+
+- Don't ask which port Bonita runs on. Default the proxy to `localhost:8080`. The user can change it later in `vite.config.ts` or `proxy.conf.json`.
+- Don't ask about CSRF / hash routing / page.properties format. Those are universal rules — apply them automatically.
+- Don't ask about how to compile or package. The toolkit's CLI handles it.
+
+### What to do with the answers
+
+Once you have answers to 1-5, you can:
+- Use the **`bonita-page`** CLI (`scripts/cli.js`) → either `scaffold` (new) or `wrap` (existing)
+- OR if running inside an MCP-enabled agent, call `scaffold_custom_page` or `wrap_existing_app`
+
+Both paths use the same code under the hood. See [`../../docs/CLI.md`](../../docs/CLI.md) for the CLI reference.
 
 ## Architecture (the only one that works in production)
 

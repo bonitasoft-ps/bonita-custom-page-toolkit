@@ -1,12 +1,12 @@
 {
   "$schema": "https://modelcontextprotocol.io/schema/tools.json",
   "namespace": "bonita_custom_page",
-  "description": "Generate, wrap, validate and build Bonita custom pages (React/Vue/Angular SPAs).",
+  "description": "Generate, wrap, validate and build Bonita custom pages — six supported frameworks (React, Vue, Angular, Svelte 5, SolidJS, Qwik). The toolkit at github.com/bonitasoft-ps/bonita-custom-page-toolkit includes runnable examples, framework skills with deployment rules, and a multilingual deployment guide for Bonita 2025.x. Tools call the same functions the standalone bonita-page CLI uses — single source of truth.",
   "tools": [
     {
       "name": "scaffold_custom_page",
-      "title": "Scaffold a new Bonita custom page",
-      "description": "Create a NEW Bonita custom page project from a framework template. Use when the user wants to start from scratch with React, Vue or Angular.",
+      "title": "Scaffold a new Bonita custom page project",
+      "description": "Create a NEW Bonita custom page project from one of the six framework templates. Use when the user explicitly says 'create a new app/page', 'scaffold a project', or doesn't have an existing codebase. The result is a complete project on disk with src/, page.properties, build scripts and multilingual deploy docs — ready to `npm install && npm run dist`.\n\n— Use BEFORE calling this tool: ASK the user for `name`, `appToken`, and which framework (don't assume). Optionally ask `displayName`, `pageToken` (default 'home'), and `targetDir`. See the bonita-custom-page skill §Questions to ask.\n\n— Don't use this when the user has an EXISTING SPA — call `wrap_existing_app` instead.\n\n— After this tool succeeds: tell the user to `cd` into the project directory and run `npm run dist` (or `./build.sh`). The output JSON's `nextSteps` field gives the exact commands.",
       "inputSchema": {
         "type": "object",
         "required": ["framework", "name", "appToken"],
@@ -14,38 +14,38 @@
           "framework": {
             "type": "string",
             "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"],
-            "description": "Frontend framework to use."
+            "description": "Frontend framework. If unsure between options, recommend based on team familiarity (React/Vue/Angular for established teams) or COMPARISON.md (Svelte for smallest bundle with simple syntax, Solid for max performance, Qwik only when first-paint speed dominates)."
           },
           "name": {
             "type": "string",
             "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
-            "description": "Internal page name in camelCase. Becomes 'custompage_<name>' in page.properties and the ZIP filename."
+            "description": "Internal page name in camelCase. Becomes 'custompage_<name>' in page.properties and 'page-<name>.zip' as the output filename. Example: 'invoiceDashboard'."
           },
           "displayName": {
             "type": "string",
-            "description": "Label shown in Bonita admin (e.g. 'Invoice Dashboard'). Defaults to name if omitted."
+            "description": "Label shown in Bonita admin (e.g. 'Invoice Dashboard'). Free text. Defaults to `name` if omitted."
           },
           "appToken": {
             "type": "string",
             "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
-            "description": "Bonita Application token. The page will be served at /bonita/apps/{appToken}/{pageToken}/."
+            "description": "Bonita Application token in camelCase. The page will be served at /bonita/apps/{appToken}/{pageToken}/. The user creates this Application separately in Bonita admin (superAdminAppBonita/application-list/)."
           },
           "pageToken": {
             "type": "string",
             "default": "home",
-            "description": "Page token within the application. Default: 'home'."
+            "description": "Page token within the Application. Default 'home'. Becomes the second URL segment."
           },
           "targetDir": {
             "type": "string",
-            "description": "Absolute path where the project should be created. Default: ./<name> in the current working directory."
+            "description": "Absolute path where the project should be created. Default: ./<name> from the current working directory. Must NOT exist."
           }
         }
       }
     },
     {
       "name": "wrap_existing_app",
-      "title": "Wrap an existing SPA into a Bonita custom page",
-      "description": "Take an EXISTING React/Vue/Angular project and add the Bonita custom-page layer on top: page.properties, packaging script, multilingual deploy docs, build.sh/build.bat. Verifies critical configs (Vite base path, hash routing, withCredentials) and warns if anything looks off without modifying the user's app code.",
+      "title": "Wrap an existing SPA project into a Bonita custom page",
+      "description": "Take an EXISTING React/Vue/Angular/Svelte/Solid/Qwik project (the user already has it on disk) and ADD the Bonita custom-page layer ON TOP, without modifying their `src/` code:\n\n  - Adds `page.properties` at the project root\n  - Adds `scripts/package-bonita.js` and `scripts/copy-docs.js`\n  - Adds `docs/DEPLOY-README.{md,html}` (multilingual EN/FR/ES)\n  - Adds `build.sh` + `build.bat`\n  - Adds `dist` and `build:bonita` scripts to `package.json`\n  - Adds `archiver` (and `cross-env` for Angular) as devDependencies\n\nIt also VERIFIES key configurations and emits WARNINGS (not failures) if it finds:\n  - Vite `base` not `'./'`\n  - Angular `baseHref` not `'./'`\n  - Browser routing instead of hash routing\n  - Missing `withCredentials` etc.\n\n— Use BEFORE calling this tool: confirm the user has a project directory and ASK for `name` and `appToken`. Framework is auto-detected from package.json/angular.json.\n\n— Don't use this when the user wants a NEW project — call `scaffold_custom_page` instead.\n\n— After this tool succeeds: REVIEW the `warnings` array with the user. Each warning describes a config that the wrapper didn't auto-fix (because it doesn't touch their source code). The matching framework skill (e.g. bonita-react-app) has the fix for each warning.",
       "inputSchema": {
         "type": "object",
         "required": ["targetDir", "name", "appToken"],
@@ -53,24 +53,25 @@
           "framework": {
             "type": "string",
             "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"],
-            "description": "If omitted, detected from package.json / angular.json."
+            "description": "If omitted, auto-detected from package.json (react/vue/svelte/solid-js/@builder.io/qwik) or angular.json. Pass explicitly only if detection fails."
           },
           "targetDir": {
             "type": "string",
-            "description": "Absolute path of the existing project to wrap."
+            "description": "Absolute path of the EXISTING project to wrap. Must contain a package.json (or angular.json for Angular)."
           },
           "name": {
             "type": "string",
             "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
-            "description": "Internal page name in camelCase."
+            "description": "Internal page name in camelCase. Becomes 'custompage_<name>'."
           },
           "displayName": {
             "type": "string",
-            "description": "Label shown in Bonita admin."
+            "description": "Label shown in Bonita admin. Defaults to `name`."
           },
           "appToken": {
             "type": "string",
-            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Bonita Application token. URL: /bonita/apps/{appToken}/{pageToken}/."
           },
           "pageToken": {
             "type": "string",
@@ -81,38 +82,38 @@
     },
     {
       "name": "validate_custom_page_zip",
-      "title": "Validate a custom-page ZIP",
-      "description": "Open a ZIP and verify it has the layout Bonita requires: page.properties at root with valid name/contentType, resources/ directory, resources/index.html. Returns a JSON report. Use before uploading to catch packaging mistakes early.",
+      "title": "Validate a custom-page ZIP before uploading to Bonita",
+      "description": "Open a ZIP file and verify it has the exact layout Bonita requires:\n  - `page.properties` AT THE ZIP ROOT with `name=custompage_*` and `contentType=page|layout|theme|apiExtension|form`\n  - `resources/` directory with `resources/index.html` inside\n\nReturns a JSON report with `valid: true|false` and a list of `issues`. Use BEFORE the user uploads the ZIP to Bonita to catch packaging mistakes early — the most common one is `page.properties` accidentally placed under `resources/` instead of at the root.\n\n— Use this when: the user has just built a ZIP and is about to upload, or wants to debug 'failed to import' errors in Bonita.\n— Don't use for: validating page.properties content rules (this tool only checks ZIP structure + the bare minimum of page.properties fields).",
       "inputSchema": {
         "type": "object",
         "required": ["zipPath"],
         "properties": {
           "zipPath": {
             "type": "string",
-            "description": "Absolute path to a page-*.zip file."
+            "description": "Absolute path to a page-*.zip file produced by `npm run dist` or `npm run build:bonita`."
           }
         }
       }
     },
     {
       "name": "build_custom_page",
-      "title": "Build a custom-page project",
-      "description": "Run npm install (if needed) and the project's build:bonita / dist script in the given directory. Returns the path to the produced ZIP and accompanying docs.",
+      "title": "Build a custom-page project (npm install + dist)",
+      "description": "Convenience wrapper. Run `npm install` (if `node_modules` is missing) and then the project's best available build script — in priority order: `dist` > `build:bonita` > `build`. Returns paths to the produced ZIP and the multilingual DEPLOY-README docs.\n\n— Use this when the user wants to (re)build a project they already have set up.\n— Don't use this for the FIRST setup of a project — call `scaffold_custom_page` (new) or `wrap_existing_app` (existing) first.\n\n— After this tool succeeds: the user can call `validate_custom_page_zip` on the produced ZIP, or upload it to Bonita per the framework skill's deployment quick-reference.",
       "inputSchema": {
         "type": "object",
         "required": ["projectDir"],
         "properties": {
           "projectDir": {
             "type": "string",
-            "description": "Absolute path to a Bonita custom-page project (must have package.json and a build:bonita or dist script)."
+            "description": "Absolute path to a Bonita custom-page project (must have package.json and at least one of: `dist`, `build:bonita`, `build` scripts)."
           }
         }
       }
     },
     {
       "name": "get_deployment_guide",
-      "title": "Get the Bonita deployment guide",
-      "description": "Return the step-by-step deployment guide for a given Bonita version. Use when the user asks how to upload a custom page to Bonita.",
+      "title": "Return the Bonita deployment guide",
+      "description": "Return the full step-by-step deployment guide for a given Bonita version, as Markdown. Use when the user asks 'how do I deploy this to Bonita?' or hits an issue uploading a ZIP.\n\nGuides differ MEANINGFULLY between versions:\n  - Bonita 2025.x: admin UI lives in TWO Living Applications (`superAdminAppBonita` and `adminAppEEBonita`). The legacy Portal admin UI (`/bonita/portal/admin`) is GONE.\n  - Bonita 7.x: legacy Portal — Resources → Pages → Add.\n\nDefault to '2025.x' unless the user explicitly says they're on 7.x or earlier.",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -120,15 +121,15 @@
             "type": "string",
             "enum": ["7.x", "2025.x"],
             "default": "2025.x",
-            "description": "Bonita version. Default: 2025.x (current). The 7.x guide uses the legacy Portal UI."
+            "description": "Bonita version. Default '2025.x' (current). For older deployments use '7.x'."
           }
         }
       }
     },
     {
       "name": "list_custom_page_examples",
-      "title": "List bundled examples",
-      "description": "Return a list of the example projects shipped with the toolkit: React/Vue/Angular task viewers and directory-bonita variants. Useful for showing the user a ready-to-deploy starting point.",
+      "title": "List the bundled custom-page examples",
+      "description": "Return the catalog of example projects shipped with the toolkit. Each example is a complete runnable project (login + Bonita session probe + tasks list + logout) in one of the six supported frameworks. Use this when the user wants to:\n  - See a working starting point before scaffolding their own\n  - Compare frameworks (also see COMPARISON.md for measured metrics)\n  - Copy an example as a template manually\n\nThe directory-bonita variants are turnkey deployments to specific Bonita Applications; the task-viewer variants are generic. All can be opened, customised and rebuilt independently.",
       "inputSchema": { "type": "object", "properties": {} }
     }
   ]

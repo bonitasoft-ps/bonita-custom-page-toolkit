@@ -115,10 +115,13 @@ bonita-custom-page-toolkit/
 │   └── shared-docs/                 Multilingual DEPLOY-README templates (EN/FR/ES)
 │
 ├── skills/                      ← For agentic AI (Claude). Markdown-based knowledge.
-│   ├── bonita-custom-page/          Foundational, framework-agnostic
+│   ├── bonita-custom-page/          Foundational, framework-agnostic + Questions to ask
 │   ├── bonita-react-app/            React-specific scaffolding rules
 │   ├── bonita-vue-app/              Vue-specific
-│   └── bonita-angular-app/          Angular-specific (incl. APP_INITIALIZER pattern)
+│   ├── bonita-angular-app/          Angular-specific (incl. APP_INITIALIZER pattern)
+│   ├── bonita-svelte-app/           Svelte 5 (runes, .svelte.ts stores)
+│   ├── bonita-solid-app/            SolidJS (createStore, all-CSS-in-app.css rule)
+│   └── bonita-qwik-app/             Qwik SPA mode (useVisibleTask$, module-level helpers)
 │
 ├── examples/                    ← Nine runnable examples (3 task-viewer + 6 directory-bonita)
 │   ├── react-task-viewer/           Generic task list demo, port :8080
@@ -131,9 +134,10 @@ bonita-custom-page-toolkit/
 │   ├── solid-directory-bonita/      SolidJS — tiniest framework runtime (~14 KB gzip)
 │   └── qwik-directory-bonita/       Qwik (SPA mode) — auto-split into 9 lazy chunks
 │
-├── docs/                        ← Reference deployment guides
-│   ├── DEPLOYMENT.md                Universal (Bonita 7.x friendly)
-│   └── DEPLOY_2025.md               Bonita 2025.x (current admin URLs)
+├── docs/                        ← Reference docs
+│   ├── DEPLOYMENT.md                Deployment — universal (Bonita 7.x friendly)
+│   ├── DEPLOY_2025.md               Deployment — Bonita 2025.x (current admin URLs)
+│   └── CLI.md                       `bonita-page` CLI reference (scaffold/wrap/validate/build)
 │
 └── mcp/                         ← MCP integration
     ├── spec/tools.json              Tool definitions (JSON Schema)

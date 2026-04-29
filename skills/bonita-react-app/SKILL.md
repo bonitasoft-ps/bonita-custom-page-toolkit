@@ -29,9 +29,22 @@ This skill covers only what is **React-specific**.
 
 When this skill activates:
 
-1. **Determine the action**: scaffold a new app, integrate Bonita auth into an existing app, or explain a pattern?
-2. **Read the foundational skill**: `../bonita-custom-page/SKILL.md` for the rules every Bonita SPA must follow.
-3. **Apply React idioms**: use the templates in `references/` for code samples.
+1. **Determine the action**: scaffold a new app, wrap an existing one, or explain a pattern?
+2. **Ask the questions in §"Questions to ask before generating"** — don't assume names, app tokens, or other params.
+3. **Read the foundational skill**: `../bonita-custom-page/SKILL.md` for the rules every Bonita SPA must follow.
+4. **Apply React idioms**: use the templates in `references/` for code samples.
+
+## Questions to ask before generating
+
+(See `../bonita-custom-page/SKILL.md` §"Questions to ask BEFORE doing anything" for the universal checklist.)
+
+React-specific add-ons:
+
+| # | Question | Notes |
+|---|----------|-------|
+| R1 | Component library: **Ant Design**, **Material UI**, **Chakra**, or **none**? | The user's existing codebase usually decides this. If new, AntD is a safe default for Bonita PS-style apps. |
+| R2 | State management: **Zustand**, **Redux Toolkit**, or **just useState/useContext**? | Default Zustand — small footprint, no boilerplate. Switch only when you have a strong reason. |
+| R3 | Tests? Vitest, Jest, or none? | Tooling — defaults to none for a custom page; add later if it grows. |
 
 ## Scaffolding a new project
 
