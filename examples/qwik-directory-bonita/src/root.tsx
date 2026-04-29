@@ -180,7 +180,7 @@ export default component$(() => {
   return (
     <div class="layout">
       <header class="topbar">
-        <h1>__DISPLAY_NAME__</h1>
+        <h1>Directory Bonita Qwik</h1>
         <div class="actions">
           <span class="user">{auth.user.displayName}</span>
           <button class="logout" onClick$={onLogout}>Logout</button>

@@ -1,0 +1,12 @@
+:root {
+  --color-primary: #FF3E00;
+  --color-bg: #f3f3f1;
+  --color-text: #303133;
+  --color-border: #e4e7ed;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  color: var(--color-text);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-bg); }
+button { cursor: pointer; font: inherit; }
+button:disabled { cursor: not-allowed; opacity: 0.6; }
