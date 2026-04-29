@@ -13,7 +13,7 @@
         "properties": {
           "framework": {
             "type": "string",
-            "enum": ["react", "vue", "angular"],
+            "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"],
             "description": "Frontend framework to use."
           },
           "name": {
@@ -52,7 +52,7 @@
         "properties": {
           "framework": {
             "type": "string",
-            "enum": ["react", "vue", "angular"],
+            "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"],
             "description": "If omitted, detected from package.json / angular.json."
           },
           "targetDir": {

@@ -1,0 +1,150 @@
+import { createSignal, createEffect, Show, For, onMount } from 'solid-js';
+import { authStore } from '../stores/auth';
+import { getMyPendingTasks, type BonitaTask } from '../api/tasks';
+
+const PRIORITY_COLOR: Record<string, string> = {
+  highest: '#c0392b',
+  above_normal: '#e67e22',
+  normal: '#3498db',
+  under_normal: '#16a085',
+  lowest: '#7f8c8d',
+};
+
+export default function TasksPage() {
+  const [tasks, setTasks] = createSignal<BonitaTask[]>([]);
+  const [total, setTotal] = createSignal(0);
+  const [loading, setLoading] = createSignal(false);
+  const [error, setError] = createSignal<string | null>(null);
+  const [lastUrl, setLastUrl] = createSignal<string | null>(null);
+  const [lastStatus, setLastStatus] = createSignal<string | null>(null);
+
+  const load = async () => {
+    const id = authStore.user?.userId;
+    if (!id) {
+      setError('No authenticated user.');
+      return;
+    }
+    const dbg = new URLSearchParams();
+    dbg.set('p', '0');
+    dbg.set('c', '50');
+    dbg.append('f', 'state=ready');
+    dbg.append('f', `user_id=${id}`);
+    dbg.append('o', 'priority DESC');
+    dbg.append('o', 'dueDate ASC');
+    setLastUrl(`/bonita/API/bpm/humanTask?${dbg}`);
+
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, total: t } = await getMyPendingTasks(id, 0, 50);
+      setTasks(data);
+      const finalTotal = t >= 0 ? t : data.length;
+      setTotal(finalTotal);
+      setLastStatus(`200 OK — ${data.length} tasks (total ${finalTotal})`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg);
+      setLastStatus('error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Re-load when user becomes available
+  createEffect(() => {
+    if (authStore.user?.userId) load();
+  });
+
+  onMount(load);
+
+  const fmt = (d?: string) => (d ? new Date(d).toLocaleString() : '—');
+  const priorityColor = (p: string) => PRIORITY_COLOR[p] ?? '#909399';
+
+  return (
+    <div class="card">
+      <header class="card-header">
+        <h2>
+          My pending tasks <span class="count">({total()} total)</span>
+        </h2>
+        <button class="refresh" disabled={loading()} onClick={load}>
+          {loading() ? 'Loading…' : 'Refresh'}
+        </button>
+      </header>
+
+      <Show when={error()}>
+        <div class="error">
+          <strong>Error</strong>
+          <pre>{error()}</pre>
+        </div>
+      </Show>
+
+      <Show
+        when={!loading() && tasks().length > 0}
+        fallback={
+          <p class="empty">
+            {loading()
+              ? 'Loading…'
+              : `No pending tasks for ${authStore.user?.userName ?? '—'}.`}
+          </p>
+        }
+      >
+        <table>
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th class="priority-col">Priority</th>
+              <th class="case-col">Case</th>
+              <th class="due-col">Due</th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={tasks()}>
+              {(task) => (
+                <tr>
+                  <td>{task.displayName || task.name}</td>
+                  <td>
+                    <span class="badge" style={{ background: priorityColor(task.priority) }}>
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td>{task.caseId}</td>
+                  <td>{fmt(task.dueDate)}</td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
+
+      <details class="diag">
+        <summary>Diagnostic info</summary>
+        <pre>{`userId: ${authStore.user?.userId ?? '(not authenticated)'}
+userName: ${authStore.user?.userName ?? '—'}
+last URL: ${lastUrl() ?? '—'}
+last status: ${lastStatus() ?? '—'}
+result count: ${tasks().length} (total: ${total()})`}</pre>
+      </details>
+
+      <style>{`
+        .card { background:white; border-radius:8px; padding:24px; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+        .card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+        h2 { margin:0; font-size:18px; font-weight:600; }
+        .count { color:#909399; font-weight:400; margin-left:8px; font-size:14px; }
+        .refresh { padding:8px 16px; background: var(--color-primary); color:white; border:none; border-radius:4px; }
+        .error { background:#fff1f0; border-left:4px solid #c00; padding:12px 16px; margin-bottom:16px; border-radius:0 4px 4px 0; }
+        .error pre { margin:8px 0 0; white-space:pre-wrap; word-break:break-word; font-size:13px; color:#c00; }
+        .empty { color:#909399; padding:24px; text-align:center; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--color-border); }
+        th { font-weight:600; font-size:13px; color:#606266; background:#fafafa; }
+        .priority-col { width:140px; }
+        .case-col { width:120px; }
+        .due-col { width:200px; }
+        .badge { display:inline-block; padding:2px 10px; border-radius:10px; color:white; font-size:12px; font-weight:500; }
+        .diag { margin-top:24px; font-size:12px; color:#606266; border-top:1px dashed var(--color-border); padding-top:12px; }
+        .diag summary { cursor:pointer; user-select:none; }
+        .diag pre { margin:8px 0 0; background:#fafafa; padding:8px 12px; border-radius:4px; white-space:pre-wrap; word-break:break-word; }
+      `}</style>
+    </div>
+  );
+}

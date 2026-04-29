@@ -99,6 +99,24 @@ export const handlers = {
           path: 'examples/angular-directory-bonita',
           description: 'Angular equivalent of react-directory-bonita.',
         },
+        {
+          name: 'svelte-directory-bonita',
+          framework: 'Svelte 5',
+          path: 'examples/svelte-directory-bonita',
+          description: 'Svelte 5 + svelte-spa-router (hash). Tiny ZIP (~22 KB). Same login + tasks scenario.',
+        },
+        {
+          name: 'solid-directory-bonita',
+          framework: 'SolidJS',
+          path: 'examples/solid-directory-bonita',
+          description: 'SolidJS + @solidjs/router. Smallest framework runtime (~14 KB gzip). React-like JSX without Virtual DOM.',
+        },
+        {
+          name: 'qwik-directory-bonita',
+          framework: 'Qwik',
+          path: 'examples/qwik-directory-bonita',
+          description: 'Qwik in SPA-only mode (no Qwik City). Resumability + automatic code-splitting (9 lazy chunks).',
+        },
       ],
     };
   },

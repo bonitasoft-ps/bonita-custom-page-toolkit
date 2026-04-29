@@ -187,6 +187,9 @@ async function detectFramework(dir) {
     const pkg = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
     const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
     if (deps['@angular/core']) return 'angular';
+    if (deps['@builder.io/qwik']) return 'qwik';
+    if (deps['solid-js']) return 'solid';
+    if (deps.svelte) return 'svelte';
     if (deps.vue) return 'vue';
     if (deps.react) return 'react';
   }
@@ -206,7 +209,14 @@ async function readProjectName(dir, framework) {
 }
 
 function frameworkLabel(f) {
-  return { react: 'React', vue: 'Vue 3', angular: 'Angular' }[f] || f;
+  return {
+    react: 'React',
+    vue: 'Vue 3',
+    angular: 'Angular',
+    svelte: 'Svelte 5',
+    solid: 'SolidJS',
+    qwik: 'Qwik',
+  }[f] || f;
 }
 
 async function checkConfigs(dir, framework, warnings) {

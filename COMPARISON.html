@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Framework comparison — Bonita custom pages</title>
+<style>
+  :root {
+    --bg: #f3f3f1; --fg: #303133; --muted: #606266; --primary: #722ed1;
+    --border: #e4e7ed; --code-bg: #f4f4f7; --warn-bg: #fff8e1; --warn-border: #f6c948;
+    --row-hi: #ecfae5; --row-lo: #fde7e7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--fg); font-family: -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.55; }
+  header { background: var(--primary); color: white; padding: 24px 32px; }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  header p { margin: 6px 0 0; opacity: .85; }
+  nav.langs { background: white; border-bottom: 1px solid var(--border); padding: 12px 32px; position: sticky; top: 0; z-index: 10; display: flex; gap: 8px; }
+  nav.langs button { padding: 6px 14px; background: white; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font: inherit; color: var(--muted); }
+  nav.langs button.active { background: var(--primary); color: white; border-color: var(--primary); }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px; background: white; min-height: 70dvh; }
+  section[lang] { display: none; }
+  section[lang].active { display: block; }
+  h2 { margin-top: 0; font-size: 24px; }
+  h3 { margin-top: 32px; font-size: 18px; color: var(--primary); }
+  h4 { margin-top: 24px; font-size: 16px; color: var(--muted); }
+  code { background: var(--code-bg); padding: 1px 6px; border-radius: 3px; font-size: 13px; font-family: "Consolas", "Monaco", monospace; }
+  pre { background: var(--code-bg); padding: 12px 14px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.45; border: 1px solid var(--border); }
+  pre code { background: transparent; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { background: var(--code-bg); font-size: 13px; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr.best { background: var(--row-hi); }
+  tr.worst { background: var(--row-lo); }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn-border); padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+  .warn strong { color: #8b6914; }
+  ol, ul { padding-left: 22px; }
+  ol li, ul li { margin-bottom: 4px; }
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
+  .legend { font-size: 12px; color: var(--muted); margin-top: -8px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Framework comparison — Bonita custom pages</h1>
+    <p>Same scenario × six frameworks · Real measurements · 2026-04-29</p>
+  </header>
+
+  <nav class="langs">
+    <button data-lang="en" class="active">English</button>
+    <button data-lang="fr">Français</button>
+    <button data-lang="es">Castellano</button>
+  </nav>
+
+  <main>
+    <!-- ENGLISH -->
+    <section lang="en" class="active">
+      <h2>Measured metrics</h2>
+      <p>The six runnable <code>directory-bonita</code> examples implement the same scenario (login + Bonita session probe + pending tasks list + logout). Build command identical. Numbers from the real produced ZIP and gzipped JS bundles.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Framework</th>
+            <th class="num">ZIP</th>
+            <th class="num">JS total</th>
+            <th class="num">JS gzip</th>
+            <th class="num">Files in ZIP</th>
+            <th class="num">Source LOC</th>
+            <th>UI library</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best"><td><strong>SolidJS</strong></td><td class="num">15 KB</td><td class="num">37 KB</td><td class="num"><strong>14 KB</strong></td><td class="num">5</td><td class="num">533</td><td>—</td></tr>
+          <tr><td><strong>Svelte 5</strong></td><td class="num">22 KB</td><td class="num">53 KB</td><td class="num">20 KB</td><td class="num">5</td><td class="num">577</td><td>—</td></tr>
+          <tr><td><strong>Qwik (SPA)</strong></td><td class="num">31 KB</td><td class="num">64 KB</td><td class="num">25 KB</td><td class="num">14 (lazy)</td><td class="num">478</td><td>—</td></tr>
+          <tr><td><strong>Angular 18</strong></td><td class="num">92 KB</td><td class="num">581 KB</td><td class="num">175 KB</td><td class="num">10</td><td class="num">710</td><td>—</td></tr>
+          <tr class="worst"><td><strong>React 19</strong></td><td class="num">353 KB</td><td class="num">1 109 KB</td><td class="num">349 KB</td><td class="num">5</td><td class="num">547</td><td>Ant Design</td></tr>
+          <tr class="worst"><td><strong>Vue 3</strong></td><td class="num">380 KB</td><td class="num">1 003 KB</td><td class="num">330 KB</td><td class="num">12</td><td class="num">557</td><td>Element Plus</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn">
+        <strong>Important caveat for fair reading.</strong> React and Vue ship a heavyweight component library (AntD / Element Plus) responsible for most of the bundle weight. Solid, Svelte and Qwik run on plain CSS in our examples. With an equivalent UI library, Solid/Svelte would climb to ~80–150 KB gzip — still 2× to 5× lighter than React + AntD, but the gap would be less dramatic. Angular ships with no UI library here, so its 175 KB gzip is the framework alone.
+      </div>
+
+      <h3>When to pick what</h3>
+      <h4>React</h4>
+      <ul>
+        <li>Your team already knows it. Largest library ecosystem.</li>
+        <li>Avoid for tiny custom pages or weak networks.</li>
+      </ul>
+
+      <h4>Vue 3</h4>
+      <ul>
+        <li>Comfortable with <code>&lt;script setup&gt;</code>. Balanced ecosystem (Element Plus / Naive UI / PrimeVue).</li>
+        <li>Conservative release policy — stable.</li>
+      </ul>
+
+      <h4>Angular</h4>
+      <ul>
+        <li>Enterprise environment with full kit (router, DI, signals, forms) without 5 extra deps.</li>
+        <li>6-month release cadence; expect periodic refactoring (signals migration recently).</li>
+        <li>Smallest "batteries included" option of the six.</li>
+      </ul>
+
+      <h4>Svelte 5</h4>
+      <ul>
+        <li>Minimal bundle, "HTML-like" syntax. Best all-rounder for NEW Bonita pages.</li>
+        <li>Easier hiring than Solid or Qwik.</li>
+      </ul>
+
+      <h4>SolidJS</h4>
+      <ul>
+        <li>Performance is a hard requirement (massive lists, real-time dashboards).</li>
+        <li>You like JSX but hate React's bundle size.</li>
+        <li>Smaller ecosystem.</li>
+      </ul>
+
+      <h4>Qwik</h4>
+      <ul>
+        <li>Heavy page where instant first-paint is critical.</li>
+        <li>You accept a young framework with possible breaking changes 2026-2027.</li>
+        <li>Best when "the page is huge but most users only touch part of it".</li>
+      </ul>
+
+      <h3>Maintenance & evolution risk (2026)</h3>
+      <table>
+        <thead>
+          <tr><th>Framework</th><th>Breaking changes</th><th>Talent availability</th><th>Verdict for 5-year code</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>React</td><td>Low</td><td><strong>Highest</strong></td><td>Safe</td></tr>
+          <tr><td>Vue 3</td><td>Low</td><td>High</td><td>Safe</td></tr>
+          <tr><td>Angular</td><td>Medium (signals migration)</td><td><strong>Highest in enterprise</strong></td><td>Safe with periodic refactor</td></tr>
+          <tr><td>Svelte 5</td><td><strong>High</strong> (runes 2024-25)</td><td>Medium-High</td><td>Safe IF starting Svelte 5 today</td></tr>
+          <tr><td>SolidJS</td><td>Low</td><td><strong>Low</strong></td><td>Technically safe; finding the next maintainer is the risk</td></tr>
+          <tr><td>Qwik</td><td>High (young)</td><td><strong>Lowest</strong></td><td>Risky for 5-year code</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Other frameworks worth knowing (not built here)</h3>
+      <table>
+        <thead><tr><th>Framework</th><th>Verdict for Bonita custom pages</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Astro</strong></td><td>Wrong tool. Emits multiple HTML files, not a single SPA.</td></tr>
+          <tr><td><strong>Lit</strong></td><td>Viable. Native Web Components, tiny bundle. Niche ecosystem.</td></tr>
+          <tr><td><strong>Preact</strong></td><td>Viable. Drop-in for React, smaller bundle.</td></tr>
+          <tr><td><strong>Alpine.js</strong></td><td>Wrong tool for a real SPA. OK for tiny widgets.</td></tr>
+          <tr><td><strong>HTMX</strong></td><td>Wrong tool here. Bonita doesn't expose the server endpoints HTMX expects.</td></tr>
+          <tr><td><strong>Mithril</strong></td><td>Viable but uncommon.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Decision tree (1 minute)</h3>
+      <pre>Are you already using React / Vue / Angular?
+├── Yes → Stick with what your team knows. 175-350 KB gzip is fine for an internal Bonita app.
+└── No, starting fresh
+     │
+     Is bundle size critical (mobile / slow networks / compliance)?
+     ├── Yes
+     │    │
+     │    Do you like JSX / come from React?
+     │    ├── Yes → SolidJS
+     │    └── No  → Svelte 5
+     │
+     Is the page huge with many interactive widgets?
+     └── Yes → Qwik (accept the maintenance risk)
+        No  → Svelte 5 (default for new lightweight Bonita pages)</pre>
+
+      <h3>Reproduce the measurements</h3>
+      <pre>cd ui-bonita-projects
+for proj in react-directory-bonita vue-directory-bonita angular-directory-bonita \
+           svelte-directory-bonita solid-directory-bonita qwik-directory-bonita; do
+  cd "examples/$proj"
+  npm install --silent
+  npm run dist
+  ZIP=$(ls dist/page-*.zip | head -1)
+  ZIP_KB=$(($(stat -c%s "$ZIP") / 1024))
+  JS_GZIP=$(($(find dist -name "*.js" -exec cat {} + | gzip -9c | wc -c) / 1024))
+  echo "$proj  ZIP=${ZIP_KB}KB  JS_gzip=${JS_GZIP}KB"
+  cd -
+done</pre>
+    </section>
+
+    <!-- FRENCH -->
+    <section lang="fr">
+      <h2>Mesures réelles</h2>
+      <p>Les six exemples <code>directory-bonita</code> implémentent le même scénario (login + sonde de session Bonita + liste de tâches en attente + déconnexion). Commande de build identique. Chiffres mesurés sur le ZIP réel produit et sur les bundles JS gzippés.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Framework</th>
+            <th class="num">ZIP</th>
+            <th class="num">JS total</th>
+            <th class="num">JS gzip</th>
+            <th class="num">Fichiers ZIP</th>
+            <th class="num">LOC source</th>
+            <th>Bibliothèque UI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best"><td><strong>SolidJS</strong></td><td class="num">15 KB</td><td class="num">37 KB</td><td class="num"><strong>14 KB</strong></td><td class="num">5</td><td class="num">533</td><td>—</td></tr>
+          <tr><td><strong>Svelte 5</strong></td><td class="num">22 KB</td><td class="num">53 KB</td><td class="num">20 KB</td><td class="num">5</td><td class="num">577</td><td>—</td></tr>
+          <tr><td><strong>Qwik (SPA)</strong></td><td class="num">31 KB</td><td class="num">64 KB</td><td class="num">25 KB</td><td class="num">14 (lazy)</td><td class="num">478</td><td>—</td></tr>
+          <tr><td><strong>Angular 18</strong></td><td class="num">92 KB</td><td class="num">581 KB</td><td class="num">175 KB</td><td class="num">10</td><td class="num">710</td><td>—</td></tr>
+          <tr class="worst"><td><strong>React 19</strong></td><td class="num">353 KB</td><td class="num">1 109 KB</td><td class="num">349 KB</td><td class="num">5</td><td class="num">547</td><td>Ant Design</td></tr>
+          <tr class="worst"><td><strong>Vue 3</strong></td><td class="num">380 KB</td><td class="num">1 003 KB</td><td class="num">330 KB</td><td class="num">12</td><td class="num">557</td><td>Element Plus</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn">
+        <strong>Mise en garde.</strong> React et Vue embarquent une bibliothèque de composants lourde (AntD / Element Plus). Solid, Svelte et Qwik utilisent du CSS pur. Avec une bibliothèque équivalente, Solid/Svelte resteraient 2× à 5× plus légers, mais l'écart serait moins spectaculaire.
+      </div>
+
+      <h3>Quand choisir lequel</h3>
+      <h4>React</h4>
+      <ul><li>Votre équipe le connaît déjà. Plus grand écosystème.</li><li>À éviter pour de petites pages ou réseaux lents.</li></ul>
+
+      <h4>Vue 3</h4>
+      <ul><li><code>&lt;script setup&gt;</code> et écosystème équilibré.</li><li>Politique conservatrice — stable.</li></ul>
+
+      <h4>Angular</h4>
+      <ul><li>Environnement entreprise tout-en-un.</li><li>Cycle 6 mois ; refactor périodique attendu.</li><li>Le plus "batteries comprises" des six.</li></ul>
+
+      <h4>Svelte 5</h4>
+      <ul><li>Bundle minimal, syntaxe HTML-like.</li><li>Meilleur compromis pour de NOUVELLES pages Bonita.</li></ul>
+
+      <h4>SolidJS</h4>
+      <ul><li>Performance critique (listes massives, dashboards temps réel).</li><li>JSX sans le poids de React.</li><li>Écosystème plus restreint.</li></ul>
+
+      <h4>Qwik</h4>
+      <ul><li>Page lourde où le first-paint instantané est critique.</li><li>Framework jeune avec breaking changes possibles 2026-2027.</li></ul>
+
+      <h3>Risque de maintenance (2026)</h3>
+      <table>
+        <thead><tr><th>Framework</th><th>Breaking changes</th><th>Disponibilité talents</th><th>Verdict 5 ans</th></tr></thead>
+        <tbody>
+          <tr><td>React</td><td>Faible</td><td><strong>Maximum</strong></td><td>Sûr</td></tr>
+          <tr><td>Vue 3</td><td>Faible</td><td>Élevée</td><td>Sûr</td></tr>
+          <tr><td>Angular</td><td>Moyen (signaux)</td><td><strong>Élevée en entreprise</strong></td><td>Sûr avec refactor périodique</td></tr>
+          <tr><td>Svelte 5</td><td><strong>Élevé</strong> (runes)</td><td>Moyenne-Haute</td><td>Sûr en partant de Svelte 5 aujourd'hui</td></tr>
+          <tr><td>SolidJS</td><td>Faible</td><td><strong>Faible</strong></td><td>Risque humain (trouver le successeur)</td></tr>
+          <tr><td>Qwik</td><td>Élevé (jeune)</td><td><strong>Très faible</strong></td><td>Risqué à 5 ans</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Autres frameworks à connaître</h3>
+      <table>
+        <thead><tr><th>Framework</th><th>Verdict pour Bonita</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Astro</strong></td><td>Mauvais outil. Génère plusieurs HTML, pas une SPA.</td></tr>
+          <tr><td><strong>Lit</strong></td><td>Viable. Web Components natifs, écosystème niche.</td></tr>
+          <tr><td><strong>Preact</strong></td><td>Viable. Remplace React avec un bundle plus petit.</td></tr>
+          <tr><td><strong>Alpine.js</strong></td><td>Mauvais outil pour une vraie SPA.</td></tr>
+          <tr><td><strong>HTMX</strong></td><td>Mauvais outil ici (endpoints attendus absents de Bonita).</td></tr>
+          <tr><td><strong>Mithril</strong></td><td>Viable mais peu commun.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Arbre de décision (1 minute)</h3>
+      <pre>Avez-vous déjà React / Vue / Angular en interne ?
+├── Oui → Restez sur ce que l'équipe connaît
+└── Non, projet neuf
+     │
+     La taille du bundle est-elle critique ?
+     ├── Oui
+     │    │
+     │    Vous aimez JSX (React) ?
+     │    ├── Oui → SolidJS
+     │    └── Non → Svelte 5
+     │
+     La page est-elle énorme avec beaucoup de widgets ?
+     └── Oui → Qwik
+        Non → Svelte 5 (le défaut pour une nouvelle page Bonita légère)</pre>
+    </section>
+
+    <!-- SPANISH -->
+    <section lang="es">
+      <h2>Medidas reales</h2>
+      <p>Los seis ejemplos ejecutables <code>directory-bonita</code> implementan el mismo escenario (login + sondeo de sesión Bonita + lista de tareas pendientes + logout). Comando de build idéntico. Datos del ZIP real producido y los bundles JS gzipados.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Framework</th>
+            <th class="num">ZIP</th>
+            <th class="num">JS total</th>
+            <th class="num">JS gzip</th>
+            <th class="num">Ficheros ZIP</th>
+            <th class="num">LOC fuente</th>
+            <th>Librería UI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="best"><td><strong>SolidJS</strong></td><td class="num">15 KB</td><td class="num">37 KB</td><td class="num"><strong>14 KB</strong></td><td class="num">5</td><td class="num">533</td><td>—</td></tr>
+          <tr><td><strong>Svelte 5</strong></td><td class="num">22 KB</td><td class="num">53 KB</td><td class="num">20 KB</td><td class="num">5</td><td class="num">577</td><td>—</td></tr>
+          <tr><td><strong>Qwik (SPA)</strong></td><td class="num">31 KB</td><td class="num">64 KB</td><td class="num">25 KB</td><td class="num">14 (lazy)</td><td class="num">478</td><td>—</td></tr>
+          <tr><td><strong>Angular 18</strong></td><td class="num">92 KB</td><td class="num">581 KB</td><td class="num">175 KB</td><td class="num">10</td><td class="num">710</td><td>—</td></tr>
+          <tr class="worst"><td><strong>React 19</strong></td><td class="num">353 KB</td><td class="num">1 109 KB</td><td class="num">349 KB</td><td class="num">5</td><td class="num">547</td><td>Ant Design</td></tr>
+          <tr class="worst"><td><strong>Vue 3</strong></td><td class="num">380 KB</td><td class="num">1 003 KB</td><td class="num">330 KB</td><td class="num">12</td><td class="num">557</td><td>Element Plus</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn">
+        <strong>Lectura justa.</strong> React y Vue traen una librería de componentes pesada (AntD / Element Plus). Solid, Svelte y Qwik usan CSS puro en estos ejemplos. Con una librería UI equivalente, Solid/Svelte se irían a 80-150 KB gzip — siguen siendo 2× a 5× más ligeros, pero el delta no sería tan brutal.
+      </div>
+
+      <h3>Cuándo elegir qué</h3>
+      <h4>React</h4>
+      <ul><li>Tu equipo ya lo domina. Mayor ecosistema.</li><li>Evitar para custom pages muy pequeñas o redes lentas.</li></ul>
+
+      <h4>Vue 3</h4>
+      <ul><li>Te gusta <code>&lt;script setup&gt;</code>. Ecosistema equilibrado (Element Plus / Naive UI / PrimeVue).</li><li>Política conservadora — estable.</li></ul>
+
+      <h4>Angular</h4>
+      <ul><li>Entorno corporativo todo en uno (router, DI, signals, forms).</li><li>Ciclo de 6 meses; refactor periódico esperado.</li><li>El más "baterías incluidas" de los seis.</li></ul>
+
+      <h4>Svelte 5</h4>
+      <ul><li>Tamaño mínimo y sintaxis "HTML+JS de toda la vida".</li><li>Mejor opción para PROYECTOS NUEVOS sin legacy en casa.</li></ul>
+
+      <h4>SolidJS</h4>
+      <ul><li>Rendimiento crítico (listas masivas, dashboards en tiempo real).</li><li>Te gusta JSX pero no el peso de React.</li><li>Ecosistema más pequeño.</li></ul>
+
+      <h4>Qwik</h4>
+      <ul><li>Página muy pesada donde el first-paint instantáneo es crítico.</li><li>Aceptas un framework joven con posibles breaking changes 2026-2027.</li></ul>
+
+      <h3>Riesgo de mantenimiento (2026)</h3>
+      <table>
+        <thead><tr><th>Framework</th><th>Breaking changes</th><th>Disponibilidad de talento</th><th>Veredicto 5 años</th></tr></thead>
+        <tbody>
+          <tr><td>React</td><td>Bajo</td><td><strong>Máxima</strong></td><td>Seguro</td></tr>
+          <tr><td>Vue 3</td><td>Bajo</td><td>Alta</td><td>Seguro</td></tr>
+          <tr><td>Angular</td><td>Medio (signals)</td><td><strong>Alta en empresa</strong></td><td>Seguro con refactor periódico</td></tr>
+          <tr><td>Svelte 5</td><td><strong>Alto</strong> (runes)</td><td>Media-Alta</td><td>Seguro empezando Svelte 5 hoy</td></tr>
+          <tr><td>SolidJS</td><td>Bajo</td><td><strong>Baja</strong></td><td>Riesgo humano (relevo)</td></tr>
+          <tr><td>Qwik</td><td>Alto (joven)</td><td><strong>Muy baja</strong></td><td>Arriesgado a 5 años</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Otros frameworks que conocer</h3>
+      <table>
+        <thead><tr><th>Framework</th><th>Veredicto para Bonita</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Astro</strong></td><td>Mala herramienta. Genera múltiples HTML, no una SPA.</td></tr>
+          <tr><td><strong>Lit</strong></td><td>Viable. Web Components nativos, ecosistema nicho.</td></tr>
+          <tr><td><strong>Preact</strong></td><td>Viable. Sustituto de React con bundle más pequeño.</td></tr>
+          <tr><td><strong>Alpine.js</strong></td><td>Mala herramienta para una SPA real.</td></tr>
+          <tr><td><strong>HTMX</strong></td><td>Mala herramienta aquí (Bonita no expone los endpoints esperados).</td></tr>
+          <tr><td><strong>Mithril</strong></td><td>Viable pero poco común.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Árbol de decisión (1 minuto)</h3>
+      <pre>¿Ya tienes React / Vue / Angular en casa?
+├── Sí → Sigue con lo que el equipo conoce
+└── No, proyecto nuevo
+     │
+     ¿Es crítico el tamaño del bundle?
+     ├── Sí
+     │    │
+     │    ¿Te gusta JSX (React)?
+     │    ├── Sí → SolidJS
+     │    └── No → Svelte 5
+     │
+     ¿La página es enorme con muchos widgets?
+     └── Sí → Qwik
+        No → Svelte 5 (la opción por defecto para una nueva custom page ligera)</pre>
+    </section>
+  </main>
+
+  <footer>
+    Generated 2026-04-29 from real builds in <code>ui-bonita-projects/examples/*-directory-bonita/</code>
+  </footer>
+
+<script>
+  const buttons = document.querySelectorAll('nav.langs button');
+  const sections = document.querySelectorAll('main section[lang]');
+  buttons.forEach(btn => btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    sections.forEach(s => s.classList.toggle('active', s.getAttribute('lang') === lang));
+    document.documentElement.lang = lang;
+  }));
+</script>
+</body>
+</html>

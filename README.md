@@ -1,6 +1,6 @@
 # bonita-custom-page-toolkit
 
-Build [Bonita](https://www.bonitasoft.com/) custom pages as **React**, **Vue** or **Angular** SPAs — three ways to use it:
+Build [Bonita](https://www.bonitasoft.com/) custom pages as **React**, **Vue**, **Angular**, **Svelte**, **SolidJS** or **Qwik** SPAs — three ways to use it:
 
 | Audience | How |
 |---|---|
@@ -105,10 +105,13 @@ bonita-custom-page-toolkit/
 │   ├── validate.js                  Verify ZIP layout
 │   └── build.js                     Run install + build:bonita
 │
-├── templates/                   ← Used by scaffold.js
+├── templates/                   ← Used by scaffold.js (6 frameworks)
 │   ├── react-vite-bonita/           Vite + React + AntD + Zustand + HashRouter
 │   ├── vue-vite-bonita/             Vite + Vue 3 + Element Plus + Pinia + WebHashHistory
 │   ├── angular-cli-bonita/          Angular 18 standalone + signals + APP_INITIALIZER
+│   ├── svelte-vite-bonita/          Svelte 5 (runes) + svelte-spa-router (hash)
+│   ├── solid-vite-bonita/           SolidJS + @solidjs/router (hash)
+│   ├── qwik-vite-bonita/            Qwik in SPA-only mode (no Qwik City)
 │   └── shared-docs/                 Multilingual DEPLOY-README templates (EN/FR/ES)
 │
 ├── skills/                      ← For agentic AI (Claude). Markdown-based knowledge.
@@ -117,13 +120,16 @@ bonita-custom-page-toolkit/
 │   ├── bonita-vue-app/              Vue-specific
 │   └── bonita-angular-app/          Angular-specific (incl. APP_INITIALIZER pattern)
 │
-├── examples/                    ← Six runnable examples, two patterns × three frameworks
+├── examples/                    ← Nine runnable examples (3 task-viewer + 6 directory-bonita)
 │   ├── react-task-viewer/           Generic task list demo, port :8080
 │   ├── vue-task-viewer/
 │   ├── angular-task-viewer/
 │   ├── react-directory-bonita/      Turnkey deploy to a specific Application
 │   ├── vue-directory-bonita/
-│   └── angular-directory-bonita/
+│   ├── angular-directory-bonita/
+│   ├── svelte-directory-bonita/     Svelte 5 — smallest of the bunch (~22 KB ZIP)
+│   ├── solid-directory-bonita/      SolidJS — tiniest framework runtime (~14 KB gzip)
+│   └── qwik-directory-bonita/       Qwik (SPA mode) — auto-split into 9 lazy chunks
 │
 ├── docs/                        ← Reference deployment guides
 │   ├── DEPLOYMENT.md                Universal (Bonita 7.x friendly)
@@ -168,6 +174,24 @@ dist/
 ```
 
 ---
+
+## Choosing a framework — measured comparison
+
+The toolkit ships the **same scenario** built in six frameworks. Real measurements (gzipped JS, ZIP size, source LOC, file count) and an opinionated guide on **when to pick each one** are in:
+
+| File | Audience |
+|------|----------|
+| [`COMPARISON.md`](COMPARISON.md) | Developers reading the source — markdown, trilingual EN/FR/ES |
+| [`COMPARISON.html`](COMPARISON.html) | Anyone reading in a browser — standalone HTML with language switcher |
+
+TL;DR from the data:
+
+- **Smallest bundle**: SolidJS (14 KB gzip) → Svelte 5 (20 KB) → Qwik (25 KB).
+- **Largest bundle**: React + AntD (349 KB gzip), Vue + Element Plus (330 KB) — the UI library accounts for most of it.
+- **Best balance for new Bonita pages without legacy**: Svelte 5.
+- **Stick with what you know** if the team already uses React / Vue / Angular — the 175–350 KB gzip is fine for an internal Bonita app.
+
+Full decision tree, maintenance/longevity matrix, and notes on Astro/Lit/Preact/Alpine.js/HTMX/Mithril are in the comparison docs.
 
 ## Bonita compatibility
 

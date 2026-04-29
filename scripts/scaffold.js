@@ -22,6 +22,9 @@ const FRAMEWORKS = {
   react: { templateDir: 'react-vite-bonita', label: 'React + Vite' },
   vue: { templateDir: 'vue-vite-bonita', label: 'Vue 3 + Vite' },
   angular: { templateDir: 'angular-cli-bonita', label: 'Angular standalone' },
+  svelte: { templateDir: 'svelte-vite-bonita', label: 'Svelte 5 + Vite' },
+  solid: { templateDir: 'solid-vite-bonita', label: 'SolidJS + Vite' },
+  qwik: { templateDir: 'qwik-vite-bonita', label: 'Qwik (SPA mode) + Vite' },
 };
 
 export async function scaffold(flags) {
