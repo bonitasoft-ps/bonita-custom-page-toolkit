@@ -2,10 +2,9 @@ import {
   component$,
   useSignal,
   useStore,
-  useTask$,
   useVisibleTask$,
   useStyles$,
-  $,
+  type Signal,
 } from '@builder.io/qwik';
 import { setSessionExpiredHandler } from './api/client';
 import { login, getSession, logout as apiLogout } from './api/auth';
@@ -30,19 +29,63 @@ const PRIORITY_COLOR: Record<string, string> = {
   lowest: '#7f8c8d',
 };
 
+// ── Top-level helper functions ─────────────────────────────────────────
+// These are imported by name into every QRL chunk, so calling them from
+// useVisibleTask$ or onClick$ handlers works without $() wrappers. Keep
+// them outside of component$() — Qwik can't serialise component-local
+// closures by name across lazy chunks.
+
+async function fetchTasks(
+  userId: string,
+  out: {
+    tasks: Signal<BonitaTask[]>;
+    total: Signal<number>;
+    loading: Signal<boolean>;
+    error: Signal<string | null>;
+    lastUrl: Signal<string | null>;
+    lastStatus: Signal<string | null>;
+  }
+): Promise<void> {
+  const dbg = new URLSearchParams();
+  dbg.set('p', '0');
+  dbg.set('c', '50');
+  dbg.append('f', 'state=ready');
+  dbg.append('f', `user_id=${userId}`);
+  dbg.append('o', 'priority DESC');
+  dbg.append('o', 'dueDate ASC');
+  out.lastUrl.value = `/bonita/API/bpm/humanTask?${dbg}`;
+
+  out.loading.value = true;
+  out.error.value = null;
+  try {
+    const { data, total: t } = await getMyPendingTasks(userId, 0, 50);
+    out.tasks.value = data;
+    const ft = t >= 0 ? t : data.length;
+    out.total.value = ft;
+    out.lastStatus.value = `200 OK — ${data.length} tasks (total ${ft})`;
+  } catch (e) {
+    out.error.value = e instanceof Error ? e.message : String(e);
+    out.lastStatus.value = 'error';
+  } finally {
+    out.loading.value = false;
+  }
+}
+
+// ── Component ──────────────────────────────────────────────────────────
+
 export default component$(() => {
   useStyles$(STYLES);
 
   const auth = useStore<AuthState>({ user: null, booted: false });
   const route = useSignal<'login' | 'home'>('login');
 
-  // Login form state
+  // Login form
   const username = useSignal('');
   const password = useSignal('');
   const loginLoading = useSignal(false);
   const loginError = useSignal<string | null>(null);
 
-  // Tasks page state
+  // Tasks state — passed as a bag to fetchTasks
   const tasks = useSignal<BonitaTask[]>([]);
   const total = useSignal(0);
   const tasksLoading = useSignal(false);
@@ -50,9 +93,8 @@ export default component$(() => {
   const lastUrl = useSignal<string | null>(null);
   const lastStatus = useSignal<string | null>(null);
 
-  // Bootstrap: probe Bonita session as soon as the component is visible.
-  // useVisibleTask$ runs in the BROWSER on first paint — required in SPA mode
-  // (without SSR), where useTask$ alone never fires for the initial render.
+  // Bootstrap: session probe + initial tasks fetch.
+  // useVisibleTask$ runs in the browser on first paint — required in SPA mode.
   // eslint-disable-next-line qwik/no-use-visible-task
   useVisibleTask$(async () => {
     setSessionExpiredHandler(() => {
@@ -68,84 +110,14 @@ export default component$(() => {
         displayName: s.user_name,
       };
       route.value = 'home';
+      await fetchTasks(s.user_id, {
+        tasks, total, loading: tasksLoading, error: tasksError, lastUrl, lastStatus,
+      });
     } catch {
       auth.user = null;
       route.value = 'login';
     } finally {
       auth.booted = true;
-    }
-  });
-
-  // Re-load tasks when entering home
-  useTask$(async ({ track }) => {
-    track(() => route.value);
-    track(() => auth.user?.userId);
-    if (route.value !== 'home' || !auth.user?.userId) return;
-    await loadTasks();
-  });
-
-  // All functions reachable from a QRL (event handler, useTask$, useVisibleTask$)
-  // must themselves be QRLs in Qwik — wrap with $() so Qwik can serialise the
-  // reference and lazy-load the chunk on demand. Plain const arrow functions
-  // get inlined into the component closure and the runtime fails with
-  // `loadTasks is not defined` when the resumed task tries to call them.
-  const loadTasks = $(async () => {
-    const id = auth.user?.userId;
-    if (!id) return;
-
-    const dbg = new URLSearchParams();
-    dbg.set('p', '0');
-    dbg.set('c', '50');
-    dbg.append('f', 'state=ready');
-    dbg.append('f', `user_id=${id}`);
-    dbg.append('o', 'priority DESC');
-    dbg.append('o', 'dueDate ASC');
-    lastUrl.value = `/bonita/API/bpm/humanTask?${dbg}`;
-
-    tasksLoading.value = true;
-    tasksError.value = null;
-    try {
-      const { data, total: t } = await getMyPendingTasks(id, 0, 50);
-      tasks.value = data;
-      const ft = t >= 0 ? t : data.length;
-      total.value = ft;
-      lastStatus.value = `200 OK — ${data.length} tasks (total ${ft})`;
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      tasksError.value = msg;
-      lastStatus.value = 'error';
-    } finally {
-      tasksLoading.value = false;
-    }
-  });
-
-  const onLogin = $(async (e: SubmitEvent) => {
-    e.preventDefault();
-    if (!username.value || !password.value) return;
-    loginLoading.value = true;
-    loginError.value = null;
-    try {
-      await login(username.value, password.value);
-      const s = await getSession();
-      auth.user = {
-        userId: s.user_id,
-        userName: s.user_name,
-        displayName: s.user_name,
-      };
-      route.value = 'home';
-    } catch {
-      loginError.value = 'Invalid credentials';
-    } finally {
-      loginLoading.value = false;
-    }
-  });
-
-  const onLogout = $(async () => {
-    try {
-      await apiLogout();
-    } finally {
-      auth.user = null;
-      route.value = 'login';
     }
   });
 
@@ -156,7 +128,32 @@ export default component$(() => {
   if (route.value === 'login' || !auth.user) {
     return (
       <div class="wrapper">
-        <form class="card" onSubmit$={onLogin}>
+        <form
+          class="card"
+          preventdefault:submit
+          onSubmit$={async () => {
+            if (!username.value || !password.value) return;
+            loginLoading.value = true;
+            loginError.value = null;
+            try {
+              await login(username.value, password.value);
+              const s = await getSession();
+              auth.user = {
+                userId: s.user_id,
+                userName: s.user_name,
+                displayName: s.user_name,
+              };
+              route.value = 'home';
+              await fetchTasks(s.user_id, {
+                tasks, total, loading: tasksLoading, error: tasksError, lastUrl, lastStatus,
+              });
+            } catch {
+              loginError.value = 'Invalid credentials';
+            } finally {
+              loginLoading.value = false;
+            }
+          }}
+        >
           <h1>Sign in</h1>
           <input
             type="text"
@@ -189,7 +186,19 @@ export default component$(() => {
         <h1>Directory Bonita Qwik</h1>
         <div class="actions">
           <span class="user">{auth.user.displayName}</span>
-          <button class="logout" onClick$={onLogout}>Logout</button>
+          <button
+            class="logout"
+            onClick$={async () => {
+              try {
+                await apiLogout();
+              } finally {
+                auth.user = null;
+                route.value = 'login';
+              }
+            }}
+          >
+            Logout
+          </button>
         </div>
       </header>
       <main class="content">
@@ -198,7 +207,17 @@ export default component$(() => {
             <h2>
               My pending tasks <span class="count">({total.value} total)</span>
             </h2>
-            <button class="refresh" disabled={tasksLoading.value} onClick$={loadTasks}>
+            <button
+              class="refresh"
+              disabled={tasksLoading.value}
+              onClick$={async () => {
+                const id = auth.user?.userId;
+                if (!id) return;
+                await fetchTasks(id, {
+                  tasks, total, loading: tasksLoading, error: tasksError, lastUrl, lastStatus,
+                });
+              }}
+            >
               {tasksLoading.value ? 'Loading…' : 'Refresh'}
             </button>
           </header>
