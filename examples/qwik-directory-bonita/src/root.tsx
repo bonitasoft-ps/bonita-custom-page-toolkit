@@ -5,6 +5,7 @@ import {
   useTask$,
   useVisibleTask$,
   useStyles$,
+  $,
 } from '@builder.io/qwik';
 import { setSessionExpiredHandler } from './api/client';
 import { login, getSession, logout as apiLogout } from './api/auth';
@@ -83,7 +84,12 @@ export default component$(() => {
     await loadTasks();
   });
 
-  const loadTasks = async () => {
+  // All functions reachable from a QRL (event handler, useTask$, useVisibleTask$)
+  // must themselves be QRLs in Qwik — wrap with $() so Qwik can serialise the
+  // reference and lazy-load the chunk on demand. Plain const arrow functions
+  // get inlined into the component closure and the runtime fails with
+  // `loadTasks is not defined` when the resumed task tries to call them.
+  const loadTasks = $(async () => {
     const id = auth.user?.userId;
     if (!id) return;
 
@@ -111,9 +117,9 @@ export default component$(() => {
     } finally {
       tasksLoading.value = false;
     }
-  };
+  });
 
-  const onLogin = async (e: SubmitEvent) => {
+  const onLogin = $(async (e: SubmitEvent) => {
     e.preventDefault();
     if (!username.value || !password.value) return;
     loginLoading.value = true;
@@ -132,16 +138,16 @@ export default component$(() => {
     } finally {
       loginLoading.value = false;
     }
-  };
+  });
 
-  const onLogout = async () => {
+  const onLogout = $(async () => {
     try {
       await apiLogout();
     } finally {
       auth.user = null;
       route.value = 'login';
     }
-  };
+  });
 
   if (!auth.booted) {
     return <div class="booting">Loading…</div>;
