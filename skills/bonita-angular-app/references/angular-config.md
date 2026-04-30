@@ -100,12 +100,17 @@ Use sparingly — Angular conventions already provide good organization without 
     <base href="./" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Angular needs 'unsafe-inline' in script-src or its click handlers
+         get blocked: "Executing inline event handler violates the following
+         CSP directive 'script-src 'self''". This is Angular-specific —
+         React/Vue/Svelte/Solid/Qwik don't have this constraint.
+         Also: omit frame-ancestors here, browsers ignore it from <meta>. -->
     <meta http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self';
+      content="default-src 'self'; script-src 'self' 'unsafe-inline';
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       font-src 'self' https://fonts.gstatic.com;
       img-src 'self' data: blob:; connect-src 'self';
-      frame-src 'self' blob:; frame-ancestors 'none';
+      frame-src 'self' blob:;
       base-uri 'self'; form-action 'self'" />
   </head>
   <body>

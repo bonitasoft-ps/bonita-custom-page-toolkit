@@ -149,9 +149,9 @@ page-{name}.zip
 
 See `references/zip-packaging.md` for the universal packaging script.
 
-### 7. Restrictive Content-Security-Policy
+### 7. Restrictive Content-Security-Policy (with two important nuances)
 
-Bonita Portal embeds the page in an iframe. The page should declare a strict CSP to comply with the same-origin model:
+Bonita Portal embeds the page in an iframe. Declare a strict CSP via `<meta>`:
 
 ```html
 <meta http-equiv="Content-Security-Policy"
@@ -159,11 +159,16 @@ Bonita Portal embeds the page in an iframe. The page should declare a strict CSP
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   font-src 'self' https://fonts.gstatic.com;
   img-src 'self' data: blob:; connect-src 'self';
-  frame-src 'self' blob:; frame-ancestors 'none';
+  frame-src 'self' blob:;
   base-uri 'self'; form-action 'self'" />
 ```
 
-`'unsafe-inline'` for styles is required by every component library that injects styles dynamically (Ant Design, Element Plus, ng-zorro). Adjust `font-src`/`img-src` if you load from external CDNs.
+Two things you'd think to add but **shouldn't**:
+
+- **`frame-ancestors 'none'`** — browsers ignore `frame-ancestors` when delivered via `<meta>` and emit a console warning. Only the HTTP response header is honoured. Bonita Tomcat sets the response header itself, so omit this directive from the meta tag entirely.
+- **Locked-down `script-src 'self'` for Angular** — Angular's runtime registers some click handlers as inline DOM attributes that the browser treats as inline scripts. With strict `script-src 'self'`, every click is blocked: *"Executing inline event handler violates Content Security Policy directive 'script-src 'self''"*. **For Angular custom pages, use `script-src 'self' 'unsafe-inline'`**. React, Vue, Svelte, Solid and Qwik don't need this — they use `addEventListener` exclusively.
+
+`'unsafe-inline'` for `style-src` is needed by every component library that injects styles dynamically (Ant Design, Element Plus, ng-zorro, Element Plus, etc.). Adjust `font-src`/`img-src` if you load from external CDNs.
 
 ## What this skill does NOT cover (see framework skills)
 
@@ -191,11 +196,12 @@ A standalone 2025.x deployment guide with screenshots-style step-by-step lives a
 
 ## Bonita 2025.x API quirks
 
-- The `o=` (ordering) query parameter is parsed strictly. **Repeat `o=` per criterion**, do NOT comma-separate:
+- **`o=` (ordering) is parsed strictly**. Repeat `o=` per criterion, never comma-separate:
   - ✅ `o=priority DESC&o=dueDate ASC`
   - ❌ `o=priority DESC,dueDate ASC` → HTTP 500
-- Older Bonita versions tolerated commas; the new parser does not.
-- `f=` (filters) still works either way — but the same repeating pattern is the safest default.
+  Older Bonita versions tolerated commas; the new parser does not.
+- **Search descriptors ≠ response field names**. The names accepted by `o=` and `f=` are search descriptors registered server-side, NOT the property names that appear in the JSON response. A query like `/bpm/process?o=lastUpdateDate+DESC` returns HTTP 500 with `Can't find search descriptor corresponding to lastUpdateDate` even though `lastUpdateDate` IS in the response. **The defensive default is to omit `o=`/`f=`/`d=` entirely** and sort/filter client-side after fetching a generous batch (≤100). This is what the BPM dashboard examples in this toolkit do — see `examples/*-directory-bonita/src/api/bpm.ts`.
+- **CSP `frame-ancestors` doesn't work from `<meta>`**. Browsers only honour that directive when delivered via the HTTP `Content-Security-Policy` response header — not from `<meta http-equiv="Content-Security-Policy">`. They emit a console warning if you try. Bonita's Tomcat sets the response header itself, so omit `frame-ancestors` from the page's `<meta>` CSP. Other directives (`script-src`, `style-src`, `connect-src`, etc.) DO work from `<meta>`.
 
 ## References
 

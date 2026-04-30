@@ -48,6 +48,7 @@ bonita-page <command> [options]
 
   scaffold    Create a NEW Bonita custom page project from a framework template
   wrap        Take an EXISTING SPA and add the Bonita custom-page layer
+  check       Pre-flight check: read-only verification of a project
   validate    Verify a custom-page ZIP has the layout Bonita requires
   build       Run npm install + build:bonita on a project
   help        Show usage
@@ -203,6 +204,85 @@ If warnings are non-empty, **review them with the user** — they signal config 
 - Doesn't write to your `src/` at all — only adds new files at the project root, `scripts/`, and `docs/`
 
 The user is expected to apply the warnings manually (with the help of the framework-specific skill if they're using AI).
+
+---
+
+## `check` — pre-flight verification (read-only)
+
+Verifies an existing project conforms to the rules in [`WRAP-CHECKLIST.md`](WRAP-CHECKLIST.md). Reads the project's files, modifies nothing, and returns a JSON report. Use it BEFORE `wrap` (and again in CI).
+
+```bash
+bonita-page check [project-dir]   # default: cwd
+```
+
+### Example — passing project
+
+```bash
+$ bonita-page check examples/react-directory-bonita
+{
+  "ok": true,
+  "framework": "react",
+  "projectDir": "/abs/path/...",
+  "checks": {
+    "buildOutputExists": true,
+    "relativeBasePath": true,
+    "hashRouting": true,
+    "credentialsInclude": true
+  },
+  "issues": []
+}
+# Exit code: 0
+```
+
+### Example — project with issues
+
+```bash
+$ bonita-page check ./my-broken-app
+{
+  "ok": false,
+  "framework": "react",
+  "projectDir": "/abs/my-broken-app",
+  "checks": {
+    "buildOutputExists": true,
+    "relativeBasePath": false,
+    "hashRouting": false,
+    "credentialsInclude": false
+  },
+  "issues": [
+    "vite.config.ts: `base` is not \"./\" (or a command-aware variant). Deployed assets will 404. Set `base: './'`.",
+    "Hash routing not detected. react requires createHashRouter for refresh-safe deployment in Bonita.",
+    "Found .../src/router.tsx — replace browser routing with hash routing.",
+    "No fetch with credentials:'include' or HttpClient withCredentials found. Bonita session cookies won't be sent."
+  ]
+}
+# Exit code: 1
+```
+
+### What `check` verifies
+
+| Check | Description |
+|-------|-------------|
+| `buildOutputExists` | A `build`, `build:bonita`, or `dist` script in `package.json` exists |
+| `relativeBasePath` | Vite `base: './'` (or computed) / Angular `baseHref: './'` |
+| `hashRouting` | `createHashRouter` / `createWebHashHistory` / `withHashLocation` / `svelte-spa-router` / `HashRouter` (Solid). For Qwik (manual routing), this check is skipped. |
+| `credentialsInclude` | Some file under `src/` contains `credentials: 'include'`, `withCredentials: true`, or sets `X-Bonita-API-Token` |
+
+### Use in CI
+
+```yaml
+- run: npx bonita-page check
+# Fails the step (exit 1) if any of the rules are violated.
+```
+
+This catches drift introduced by careless edits — e.g. someone replaces `createHashRouter` with `createBrowserRouter` because the dev mode "works fine" without realising it'll break in Bonita.
+
+### Limitations
+
+- Only does static text matching. A function called `createHashRouter` defined in user code (not from `react-router-dom`) would still pass the check.
+- Doesn't verify CSP meta tag content (some directives are framework-specific — see WRAP-CHECKLIST §7).
+- Doesn't run the build itself. If your project has a syntax error, `check` may still pass — you'll find out at `wrap` or `build` time.
+
+For a more thorough manual review, read [`WRAP-CHECKLIST.md`](WRAP-CHECKLIST.md) and audit `src/` against it.
 
 ---
 

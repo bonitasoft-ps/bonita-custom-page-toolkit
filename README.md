@@ -38,31 +38,36 @@ cd ../invoice-dashboard
 
 (On Windows: use `bonita-page.bat` and `build.bat`.)
 
-### Wrap an EXISTING React/Vue/Angular project
+### Wrap an EXISTING SPA project (any of the 6 frameworks)
 
-If a client already has an SPA they want to deploy as a Bonita custom page:
+If a client already has a React/Vue/Angular/Svelte/Solid/Qwik app and wants to deploy it as a Bonita custom page, you can wrap it WITHOUT touching their `src/` code. The flow is **check → wrap → build**:
 
 ```bash
 cd /path/to/their-existing-app
+
+# 1. Pre-flight check (read-only). Lists any of the 7 rules they're missing.
+/path/to/bonita-custom-page-toolkit/bonita-page.sh check
+
+# 2. If check passes, wrap it (adds page.properties, packaging, build scripts, deploy docs)
 /path/to/bonita-custom-page-toolkit/bonita-page.sh wrap \
-    --framework=react \
     --name=clientDashboard \
     --display-name="Client Dashboard" \
-    --app-token=clientApp \
-    --page-token=home
+    --app-token=clientApp
 
-# Wrap adds (without modifying their code):
-#   page.properties
-#   scripts/package-bonita.js + scripts/copy-docs.js
-#   docs/DEPLOY-README.{md,html} (EN/FR/ES)
-#   build.sh + build.bat
-#   `dist` and `build:bonita` scripts in package.json
-# It also CHECKS for the common Bonita pitfalls (base path, hash routing,
-# withCredentials) and prints WARNINGS if anything looks wrong.
-
+# 3. Build the ZIP
 ./build.sh
-# → dist/page-clientDashboard.zip
+# → dist/page-clientDashboard.zip + DEPLOY-README.{md,html}
 ```
+
+If `check` reports issues, fix them in `src/` per [`docs/WRAP-CHECKLIST.md`](docs/WRAP-CHECKLIST.md), then re-run.
+
+`wrap` adds these files at the project root WITHOUT touching `src/`:
+- `page.properties` (Bonita page descriptor)
+- `scripts/package-bonita.js` + `scripts/copy-docs.js`
+- `docs/DEPLOY-README.{md,html}` (multilingual EN/FR/ES)
+- `build.sh` + `build.bat`
+- `dist` + `build:bonita` scripts in `package.json`
+- `archiver` (and `cross-env` for Angular) in `devDependencies`
 
 ### Validate a ZIP before uploading
 
@@ -137,7 +142,8 @@ bonita-custom-page-toolkit/
 ├── docs/                        ← Reference docs
 │   ├── DEPLOYMENT.md                Deployment — universal (Bonita 7.x friendly)
 │   ├── DEPLOY_2025.md               Deployment — Bonita 2025.x (current admin URLs)
-│   └── CLI.md                       `bonita-page` CLI reference (scaffold/wrap/validate/build)
+│   ├── CLI.md                       `bonita-page` CLI reference (scaffold/wrap/check/validate/build)
+│   └── WRAP-CHECKLIST.md            Pre-flight checklist for wrapping an existing SPA (no AI needed)
 │
 └── mcp/                         ← MCP integration
     ├── spec/tools.json              Tool definitions (JSON Schema)
@@ -176,6 +182,31 @@ dist/
 ├── DEPLOY-README.md             ← Hand to whoever installs it (EN/FR/ES)
 └── DEPLOY-README.html           ← Same content, browseable
 ```
+
+---
+
+## Six runnable example apps
+
+The toolkit ships **6 fully-working dashboard apps** — same scenario (login + Bonita session probe + KPI cards + priority chart + tabs for tasks/cases/processes + detail modal), one per framework. All deployable to Bonita 2025.x as-is — just `cd`, `./build.sh`, and upload the produced ZIP.
+
+| Example | Framework | URL it deploys to | Bundle (gzip) |
+|---------|-----------|-------------------|---------------|
+| [`examples/react-directory-bonita/`](examples/react-directory-bonita/) | React 19 + AntD | `/bonita/apps/appDirectoryBonitaReact/home/` | ~349 KB |
+| [`examples/vue-directory-bonita/`](examples/vue-directory-bonita/) | Vue 3 + Element Plus | `/bonita/apps/appDirectoryBonitaVue/home/` | ~330 KB |
+| [`examples/angular-directory-bonita/`](examples/angular-directory-bonita/) | Angular 18 standalone + signals | `/bonita/apps/appDirectoryBonitaAngular/home/` | ~175 KB |
+| [`examples/svelte-directory-bonita/`](examples/svelte-directory-bonita/) | Svelte 5 (runes) | `/bonita/apps/appDirectoryBonitaSvelte/home/` | **~20 KB** |
+| [`examples/solid-directory-bonita/`](examples/solid-directory-bonita/) | SolidJS | `/bonita/apps/appDirectoryBonitaSolid/home/` | **~14 KB** |
+| [`examples/qwik-directory-bonita/`](examples/qwik-directory-bonita/) | Qwik (SPA mode) | `/bonita/apps/appDirectoryBonitaQwik/home/` | ~25 KB |
+
+To get one running:
+
+```bash
+cd examples/svelte-directory-bonita        # or any of the six
+./build.sh                                  # → dist/page-*.zip + multilingual deploy docs
+# Upload the ZIP per docs/DEPLOY_2025.md
+```
+
+For three more minimal examples (single-page task list, no dashboard chrome) see [`examples/{react,vue,angular}-task-viewer/`](examples/).
 
 ---
 

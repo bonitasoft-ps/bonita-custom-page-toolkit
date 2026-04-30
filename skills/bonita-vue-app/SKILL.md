@@ -190,6 +190,26 @@ The probe runs once on mount. Until it resolves, `auth.isAuthenticated` is false
 
 Element Plus injects styles dynamically — your CSP must allow `'unsafe-inline'` for `style-src`. Same applies to Naive UI and most component libraries. See the universal CSP example in `../bonita-custom-page/SKILL.md`.
 
+### F. Watchers that depend on auth state need `{ immediate: true }`
+
+A subtle gotcha: when a page component uses `watch()` to react to a value coming from the auth store (typical: load tasks when `userId` becomes known), the watcher does NOT fire on mount by default. If the auth store ALREADY has a value at the time the page mounts (because the App-level probe finished before this page rendered), the watcher's getter is evaluated once to track the dependency but the callback never runs — there's no "change" to react to. The result: page loads empty until something else triggers the watcher.
+
+```ts
+// ❌ Doesn't fire on mount when auth.user.userId is already set
+watch(() => auth.user?.userId, () => load());
+
+// ✅ Fires on mount with the current value, plus on every change
+watch(
+  () => auth.user?.userId,
+  (id) => { if (id) load(); },
+  { immediate: true }
+);
+```
+
+The `if (id)` guard inside the callback handles the case where the watcher fires with an undefined id (auth not loaded yet) — load() is a no-op.
+
+Don't combine `onMounted(load)` AND a non-immediate watcher: in the happy path it'll call `load()` twice. Prefer the immediate watcher alone — it covers both initial state and subsequent changes.
+
 ## Common patterns
 
 ### Adding a new API module

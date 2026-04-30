@@ -15,6 +15,7 @@ import { scaffold } from '../../scripts/scaffold.js';
 import { wrap } from '../../scripts/wrap.js';
 import { validate } from '../../scripts/validate.js';
 import { build } from '../../scripts/build.js';
+import { check } from '../../scripts/check.js';
 import { readFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -45,6 +46,10 @@ export const handlers = {
   async build_custom_page(args) {
     if (!args.projectDir) throw new Error('projectDir is required');
     return build(args.projectDir);
+  },
+
+  async check_custom_page_project(args = {}) {
+    return check(args.projectDir || process.cwd());
   },
 
   async get_deployment_guide({ version = '2025.x' } = {}) {

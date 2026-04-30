@@ -96,6 +96,20 @@
       }
     },
     {
+      "name": "check_custom_page_project",
+      "title": "Pre-flight check on a project before wrapping",
+      "description": "Read-only verification of an existing SPA against the rules in docs/WRAP-CHECKLIST.md. Returns `{ ok, framework, checks: {...}, issues: [...] }`. Use this BEFORE `wrap_existing_app` to catch missing pieces (wrong base path, browser router instead of hash, missing credentials:'include') without modifying the user's code. The check is read-only and idempotent.\n\n— Use when: user asks 'is my project ready to deploy as a Bonita custom page?' or you're about to call wrap_existing_app and want a clean signal.\n— Don't use to fix anything — this only reports. The user (or you, with their permission) applies the fixes per the issues array.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectDir": {
+            "type": "string",
+            "description": "Absolute path of the project to check. Default: current working directory."
+          }
+        }
+      }
+    },
+    {
       "name": "build_custom_page",
       "title": "Build a custom-page project (npm install + dist)",
       "description": "Convenience wrapper. Run `npm install` (if `node_modules` is missing) and then the project's best available build script — in priority order: `dist` > `build:bonita` > `build`. Returns paths to the produced ZIP and the multilingual DEPLOY-README docs.\n\n— Use this when the user wants to (re)build a project they already have set up.\n— Don't use this for the FIRST setup of a project — call `scaffold_custom_page` (new) or `wrap_existing_app` (existing) first.\n\n— After this tool succeeds: the user can call `validate_custom_page_zip` on the produced ZIP, or upload it to Bonita per the framework skill's deployment quick-reference.",
