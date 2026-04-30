@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {
   ElCard, ElTable, ElTableColumn, ElTag, ElButton, ElMessage, ElEmpty,
   ElInput, ElSelect, ElOption, ElDialog, ElTabs, ElTabPane, ElProgress, ElAlert,
@@ -53,8 +53,12 @@ async function load() {
   }
 }
 
-onMounted(load);
-watch(() => auth.user?.userId, () => load());
+// `immediate: true` makes the watcher fire on mount with whatever userId is
+// already there (set by APP-level session probe). Without it, load() ran on
+// onMounted before auth.user was populated and bailed out early — the
+// dashboard stayed empty until the user clicked something that triggered a
+// re-render.
+watch(() => auth.user?.userId, (id) => { if (id) load(); }, { immediate: true });
 
 const tasks = computed(() => snapshot.value?.tasks.data ?? []);
 const tasksTotal = computed(() => snapshot.value?.tasks.total ?? 0);
