@@ -44,6 +44,17 @@ export interface BpmSnapshot {
   tasks: SafeResult<BonitaTask[]>;
 }
 
+// ── Bonita API quirks ─────────────────────────────────────────────────
+// We deliberately keep these URLs simple:
+//
+//   - `o=lastUpdateDate DESC` on /bpm/process returns HTTP 500 with
+//     "Can't find search descriptor corresponding to lastUpdateDate".
+//   - `o=start DESC` and `d=processDefinitionId` on /bpm/case can also fail.
+//   - `f=archivedDate>=YYYY-MM-DD` on /bpm/archivedCase returned 500
+//     in tests against Bonita 2025.x.
+//
+// Sorting + "today" filtering is done client-side from the returned data.
+
 @Injectable({ providedIn: 'root' })
 export class BpmService {
   private http = inject(HttpClient);
@@ -53,7 +64,6 @@ export class BpmService {
     const params = new URLSearchParams();
     params.set('p', String(page));
     params.set('c', String(size));
-    params.append('o', 'lastUpdateDate DESC');
     return this.http
       .get<BonitaProcess[]>(`/bonita/API/bpm/process?${params}`, { observe: 'response' })
       .pipe(
@@ -66,8 +76,6 @@ export class BpmService {
     const params = new URLSearchParams();
     params.set('p', String(page));
     params.set('c', String(size));
-    params.append('o', 'start DESC');
-    params.append('d', 'processDefinitionId');
     return this.http
       .get<BonitaCase[]>(`/bonita/API/bpm/case?${params}`, { observe: 'response' })
       .pipe(
@@ -77,28 +85,34 @@ export class BpmService {
   }
 
   getCasesArchivedToday(): Observable<SafeResult<BonitaArchivedCase[]>> {
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
     const params = new URLSearchParams();
     params.set('p', '0');
-    params.set('c', '50');
-    params.append('o', 'archivedDate DESC');
-    params.append('f', `archivedDate>=${todayStr}`);
+    params.set('c', '100');
     return this.http
       .get<BonitaArchivedCase[]>(`/bonita/API/bpm/archivedCase?${params}`, { observe: 'response' })
       .pipe(
-        map((r) => this.toSafeResult(r)),
+        map((r) => {
+          const all = r.body ?? [];
+          // Filter to today client-side
+          const now = new Date();
+          const isToday = (raw?: string) => {
+            if (!raw) return false;
+            const d = new Date(raw);
+            return d.getFullYear() === now.getFullYear()
+              && d.getMonth() === now.getMonth()
+              && d.getDate() === now.getDate();
+          };
+          const filtered = all.filter((c) => isToday(c.archivedDate) || isToday(c.end));
+          return { data: filtered, total: filtered.length, error: null as string | null };
+        }),
         catchError((e) => of(this.errorResult<BonitaArchivedCase[]>(e)))
       );
   }
 
   loadSnapshot(userId: string): Observable<BpmSnapshot> {
     return forkJoin({
-      processes: this.getProcesses(),
-      openCases: this.getOpenCases(),
+      processes: this.getProcesses(0, 50),
+      openCases: this.getOpenCases(0, 50),
       closedToday: this.getCasesArchivedToday(),
       tasks: this.tasks
         .getMyPendingTasks(userId, 0, 100)

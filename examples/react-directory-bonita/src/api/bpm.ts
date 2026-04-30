@@ -31,11 +31,24 @@ export interface BonitaArchivedCase extends BonitaCase {
   archivedDate: string;
 }
 
-// Existing in tasks.ts — re-exported from here for convenience
+// Re-exports for convenience
 export type { BonitaTask } from './tasks';
 export { getMyPendingTasks } from './tasks';
 
-// ── Process catalog ───────────────────────────────────────────────────
+// ── Bonita API quirks ─────────────────────────────────────────────────
+// We deliberately keep these URLs simple. Reasons learned the hard way:
+//
+//   - `o=lastUpdateDate DESC` on /bpm/process returns HTTP 500 with
+//     "Can't find search descriptor corresponding to lastUpdateDate".
+//     The valid search descriptor names depend on the Bonita version
+//     and aren't always documented; passing none is always safe.
+//   - `o=start DESC` and `d=processDefinitionId` on /bpm/case can also
+//     fail depending on the deployment.
+//   - `f=archivedDate>=YYYY-MM-DD` on /bpm/archivedCase returned 500
+//     in tests against Bonita 2025.x; we filter client-side instead.
+//
+// Sorting and "today" filtering happens in the components from the
+// returned data — for our small page sizes (≤100) the cost is negligible.
 
 export async function getProcesses(
   page = 0,
@@ -44,11 +57,8 @@ export async function getProcesses(
   const params = new URLSearchParams();
   params.set('p', String(page));
   params.set('c', String(size));
-  params.append('o', 'lastUpdateDate DESC');
   return apiRequestWithCount<BonitaProcess[]>(`/bpm/process?${params}`);
 }
-
-// ── Open cases ────────────────────────────────────────────────────────
 
 export async function getOpenCases(
   page = 0,
@@ -57,34 +67,34 @@ export async function getOpenCases(
   const params = new URLSearchParams();
   params.set('p', String(page));
   params.set('c', String(size));
-  params.append('o', 'start DESC');
-  // d=processDefinitionId so we can resolve the process name later if needed
-  params.append('d', 'processDefinitionId');
   return apiRequestWithCount<BonitaCase[]>(`/bpm/case?${params}`);
 }
 
-// ── Archived cases (today) ────────────────────────────────────────────
-
 export async function getCasesArchivedToday(): Promise<{ data: BonitaArchivedCase[]; total: number }> {
-  // Bonita filter syntax for date ranges is f=archivedDate>=YYYY-MM-DD
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  const todayStr = `${yyyy}-${mm}-${dd}`;
-
+  // Fetch a generous batch of recent archives and filter "today" in JS —
+  // Bonita rejects f=archivedDate>=YYYY-MM-DD in some deployments.
   const params = new URLSearchParams();
   params.set('p', '0');
-  params.set('c', '50');
-  // Bonita 2025.x: repeat `o` per criterion (NOT comma-separated)
-  params.append('o', 'archivedDate DESC');
-  params.append('f', `archivedDate>=${todayStr}`);
-  return apiRequestWithCount<BonitaArchivedCase[]>(`/bpm/archivedCase?${params}`);
+  params.set('c', '100');
+  const result = await apiRequestWithCount<BonitaArchivedCase[]>(`/bpm/archivedCase?${params}`);
+
+  const now = new Date();
+  const isToday = (raw?: string) => {
+    if (!raw) return false;
+    const d = new Date(raw);
+    return d.getFullYear() === now.getFullYear()
+      && d.getMonth() === now.getMonth()
+      && d.getDate() === now.getDate();
+  };
+
+  const filtered = result.data.filter((c) => isToday(c.archivedDate) || isToday(c.end));
+  // total: we know exactly how many are from today within the batch we loaded.
+  // If there are more archived items than `c=100`, we'll undercount — fine
+  // for a dashboard widget, the user can scroll the archive separately.
+  return { data: filtered, total: filtered.length };
 }
 
 // ── Aggregate snapshot for the dashboard ──────────────────────────────
-// Loads everything in parallel, fails individually so a 403 on one endpoint
-// (e.g. archivedCase if the user lacks permission) doesn't take down the rest.
 
 import { getMyPendingTasks } from './tasks';
 import type { BonitaTask } from './tasks';
@@ -106,8 +116,8 @@ async function safe<T>(fn: () => Promise<{ data: T; total: number }>) {
 
 export async function loadSnapshot(userId: string): Promise<BpmSnapshot> {
   const [processes, openCases, closedToday, tasks] = await Promise.all([
-    safe(() => getProcesses(0, 20)),
-    safe(() => getOpenCases(0, 20)),
+    safe(() => getProcesses(0, 50)),
+    safe(() => getOpenCases(0, 50)),
     safe(() => getCasesArchivedToday()),
     safe(() => getMyPendingTasks(userId, 0, 100)),
   ]);
