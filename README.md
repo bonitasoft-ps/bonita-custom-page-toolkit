@@ -40,7 +40,22 @@ cd ../invoice-dashboard
 
 ### Wrap an EXISTING SPA project (any of the 6 frameworks)
 
-If a client already has a React/Vue/Angular/Svelte/Solid/Qwik app and wants to deploy it as a Bonita custom page, you can wrap it WITHOUT touching their `src/` code. The flow is **check → wrap → build**:
+If a client already has a React/Vue/Angular/Svelte/Solid/Qwik app and wants to deploy it as a Bonita custom page, you can wrap it WITHOUT touching their `src/` code.
+
+**One command (happy path)** — chains check → wrap → npm install → build, aborts on the first failure:
+
+```bash
+cd /path/to/their-existing-app
+/path/to/bonita-custom-page-toolkit/bonita-page.sh prepare \
+    --name=clientDashboard \
+    --display-name="Client Dashboard" \
+    --app-token=clientApp
+# → dist/page-clientDashboard.zip + DEPLOY-README.{md,html}
+```
+
+If `prepare` aborts in the `check` stage, it lists exactly what to fix per [`docs/WRAP-CHECKLIST.md`](docs/WRAP-CHECKLIST.md) (also available in [Castellano](docs/WRAP-CHECKLIST.es.md) and [Français](docs/WRAP-CHECKLIST.fr.md)). Fix the issues in `src/` and re-run.
+
+**Step by step (more control)**:
 
 ```bash
 cd /path/to/their-existing-app
@@ -58,8 +73,6 @@ cd /path/to/their-existing-app
 ./build.sh
 # → dist/page-clientDashboard.zip + DEPLOY-README.{md,html}
 ```
-
-If `check` reports issues, fix them in `src/` per [`docs/WRAP-CHECKLIST.md`](docs/WRAP-CHECKLIST.md), then re-run.
 
 `wrap` adds these files at the project root WITHOUT touching `src/`:
 - `page.properties` (Bonita page descriptor)
@@ -80,12 +93,14 @@ If `check` reports issues, fix them in `src/` per [`docs/WRAP-CHECKLIST.md`](doc
 
 ## Quick start (with Claude / MCP)
 
-If your environment has the Bonita-AI-Agent MCP (or any MCP) configured, the toolkit registers six tools:
+If your environment has the Bonita-AI-Agent MCP (or any MCP) configured, the toolkit registers these tools:
 
 | Tool | What you'd ask Claude |
 |------|----------------------|
+| `prepare_custom_page` | *"Wrap and build this project in one shot for Bonita app Y"* (happy path: check + wrap + install + dist) |
 | `scaffold_custom_page` | *"Create a Vue custom page named X for app Y"* |
 | `wrap_existing_app` | *"Wrap this Angular project as a Bonita custom page"* |
+| `check_custom_page_project` | *"Is this project ready to wrap?"* |
 | `validate_custom_page_zip` | *"Check this ZIP is Bonita-compatible"* |
 | `build_custom_page` | *"Build the project at this path"* |
 | `get_deployment_guide` | *"How do I deploy to Bonita 2025.x?"* |

@@ -66,10 +66,11 @@ For Angular:
 ### What to do with the answers
 
 Once you have answers to 1-5, you can:
-- Use the **`bonita-page`** CLI (`scripts/cli.js`) → either `scaffold` (new) or `wrap` (existing)
+- For an EXISTING SPA where you trust it conforms (or want a single command): run **`bonita-page prepare`** — it chains `check → wrap → npm install → npm run dist` and aborts at the first failed stage with a clear reason. Inside MCP this is the `prepare_custom_page` tool.
+- Granular control: use the **`bonita-page`** CLI (`scripts/cli.js`) → either `scaffold` (new) or `wrap` (existing)
 - OR if running inside an MCP-enabled agent, call `scaffold_custom_page` or `wrap_existing_app`
 
-Both paths use the same code under the hood. See [`../../docs/CLI.md`](../../docs/CLI.md) for the CLI reference.
+All paths use the same code under the hood. See [`../../docs/CLI.md`](../../docs/CLI.md) for the CLI reference.
 
 ## Architecture (the only one that works in production)
 

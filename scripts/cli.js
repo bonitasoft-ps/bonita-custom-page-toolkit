@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 // bonita-page CLI — single entry point for both human use (.sh/.bat) and MCP handlers.
-// Subcommands: scaffold | wrap | check | validate | build | help
+// Subcommands: prepare | scaffold | wrap | check | validate | build | help
 
 import { scaffold } from './scaffold.js';
 import { wrap } from './wrap.js';
 import { validate } from './validate.js';
 import { build } from './build.js';
 import { check } from './check.js';
+import { prepare } from './prepare.js';
 
 const HELP = `bonita-page — generate, wrap, validate and build Bonita custom pages
 
@@ -14,6 +15,7 @@ USAGE
   bonita-page <command> [options]
 
 COMMANDS
+  prepare     ALL-IN-ONE: check + wrap + npm install + build → ZIP + deploy docs
   scaffold    Create a NEW Bonita custom page project from a framework template
   wrap        Take an EXISTING SPA project and turn it into a Bonita custom page
   check       Pre-flight check: read-only verification that a project is ready to wrap
@@ -22,22 +24,19 @@ COMMANDS
   help        Show this message
 
 EXAMPLES
-  # Scaffold a new React custom page
+  # ★ HAPPY PATH for clients: one command does everything
+  cd /path/to/existing-app
+  bonita-page prepare --name=myDashboard --app-token=myApp
+
+  # Scaffold a new project from a template (no existing code)
   bonita-page scaffold --framework=react --name=invoiceDashboard \\
-      --display-name="Invoice Dashboard" --app-token=invoiceApp --page-token=home
+      --display-name="Invoice Dashboard" --app-token=invoiceApp
 
-  # Pre-flight check on an existing project (reads only, no modifications)
-  cd /path/to/my-existing-app
+  # Pre-flight check only (read-only, no side effects)
   bonita-page check
-
-  # Wrap an existing project (after 'check' passes)
-  bonita-page wrap --framework=angular --name=myDashboard --app-token=myApp
 
   # Verify a ZIP before uploading
   bonita-page validate ./dist/page-myApp.zip
-
-  # Build a project (install deps if needed, produce ZIP + multilingual docs)
-  bonita-page build .
 
 OPTIONS PER COMMAND
   scaffold:
@@ -88,6 +87,11 @@ async function main() {
 
   try {
     switch (cmd) {
+      case 'prepare': {
+        const result = await prepare(flags);
+        console.log(JSON.stringify(result, null, 2));
+        process.exit(result.ok ? 0 : 1);
+      }
       case 'scaffold': {
         const result = await scaffold(flags);
         console.log(JSON.stringify(result, null, 2));

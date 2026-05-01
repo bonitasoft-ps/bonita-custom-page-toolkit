@@ -1,10 +1,38 @@
 # Pre-flight checklist: preparing your existing project for `bonita-page wrap`
 
+> Idiomas / Languages / Langues: **[English (this document)]** · [Castellano](WRAP-CHECKLIST.es.md) · [Français](WRAP-CHECKLIST.fr.md)
+
 This document is for **developers who already have a React / Vue / Angular / Svelte / SolidJS / Qwik project** and want to package it as a Bonita custom page using the toolkit's `bonita-page wrap` command.
 
 It tells you exactly what your project needs to look like **before** running `wrap`, so the wrap step can succeed and your ZIP deploys cleanly to Bonita 2025.x without any AI involvement.
 
 > **Why this exists.** `bonita-page wrap` only adds the Bonita layer (page.properties, packaging script, deploy docs, build helpers). It does NOT modify your `src/` code. If your project doesn't already conform to the rules below, the wrap will succeed but the deployed ZIP will fail at runtime. The fastest path is to fix any issues in `src/` first, then wrap.
+
+---
+
+## Express path (one command)
+
+If your team is confident the project conforms to the rules, you can skip the manual verification and use the orchestrator:
+
+```bash
+cd /path/to/your/project
+/path/to/bonita-custom-page-toolkit/bonita-page.sh prepare \
+    --name=myDashboard \
+    --app-token=myApp
+# → runs: check, wrap, npm install, npm run dist
+# → produces dist/page-myDashboard.zip + DEPLOY-README.{md,html}
+```
+
+If `prepare` aborts in the `check` stage, you'll know exactly what to fix (the command lists the issues and stops). Apply the relevant `Manual fixes per framework` below and re-run.
+
+If you prefer running the steps individually (more control, same result):
+
+```bash
+bonita-page check                                  # 1. Verify
+bonita-page wrap --name=myDashboard --app-token=myApp  # 2. Add Bonita layer
+npm install                                        # 3. Dependencies
+npm run dist                                       # 4. Build the ZIP
+```
 
 ---
 

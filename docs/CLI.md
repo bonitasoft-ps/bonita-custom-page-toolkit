@@ -46,6 +46,7 @@ bonita-page help
 ```
 bonita-page <command> [options]
 
+  prepare     ALL-IN-ONE: check + wrap + npm install + build → ZIP + deploy docs
   scaffold    Create a NEW Bonita custom page project from a framework template
   wrap        Take an EXISTING SPA and add the Bonita custom-page layer
   check       Pre-flight check: read-only verification of a project
@@ -53,6 +54,89 @@ bonita-page <command> [options]
   build       Run npm install + build:bonita on a project
   help        Show usage
 ```
+
+---
+
+## `prepare` — one-shot pipeline (happy path)
+
+Runs the full pipeline for an EXISTING SPA in one call: `check` → `wrap` → `npm install` (if needed) → `npm run dist`. Stops at the first failed stage with a structured reason.
+
+```bash
+bonita-page prepare \
+    --name=<camelCase> \
+    --app-token=<camelCase> \
+    [--display-name="<text>"] \
+    [--page-token=<token>] \
+    [--framework=<react|vue|angular|svelte|solid|qwik>] \
+    [--target-dir=<path>] \
+    [--skip-check] \
+    [--skip-install]
+```
+
+### Required flags
+
+| Flag | Format | Notes |
+|------|--------|-------|
+| `--name` | `[a-zA-Z][a-zA-Z0-9]*` | Internal page name. Becomes `custompage_<name>` and `page-<name>.zip`. |
+| `--app-token` | `[a-zA-Z][a-zA-Z0-9]*` | Bonita Application token. URL: `/bonita/apps/{appToken}/{pageToken}/` |
+
+### Optional flags
+
+| Flag | Default | Notes |
+|------|---------|-------|
+| `--display-name` | same as `--name` | Free text shown in Bonita admin |
+| `--page-token` | `home` | Page token within the app |
+| `--framework` | auto-detected | From `package.json` / `angular.json`. Override only if detection fails. |
+| `--target-dir` | cwd | Path of the existing project. Must contain `package.json` (or `angular.json`). |
+| `--skip-check` | `false` | Proceed even if `check` reports issues. Use only after acknowledging the warnings. |
+| `--skip-install` | `false` | Skip `npm install` even if `node_modules` is missing. Useful for monorepos. |
+
+### Example
+
+```bash
+cd /path/to/existing-app
+bonita-page prepare \
+    --name=clientDashboard \
+    --display-name="Client Dashboard" \
+    --app-token=clientApp
+```
+
+Output on success (JSON):
+```json
+{
+  "ok": true,
+  "framework": "Vue 3 + Vite",
+  "name": "clientDashboard",
+  "appToken": "clientApp",
+  "pageToken": "home",
+  "projectDir": "/abs/path/to/existing-app",
+  "zipPath": "/abs/path/to/existing-app/dist/page-clientDashboard.zip",
+  "docs": {
+    "md":   "/abs/path/.../dist/DEPLOY-README.md",
+    "html": "/abs/path/.../dist/DEPLOY-README.html"
+  },
+  "nextSteps": ["..."],
+  "stages": [
+    { "stage": "check",   "ok": true, "summary": { /* … */ } },
+    { "stage": "wrap",    "ok": true, "summary": { /* … */ } },
+    { "stage": "install", "ok": true },
+    { "stage": "dist",    "ok": true }
+  ]
+}
+```
+
+Output on failure (JSON, exit 1):
+```json
+{
+  "ok": false,
+  "stoppedAt": "check",
+  "reason": "Project failed pre-flight checks. Fix the issues below in src/ and re-run, or pass --skip-check to proceed anyway.",
+  "issues": ["src/router.tsx: createBrowserRouter found — use createHashRouter."],
+  "stages": [{ "stage": "check", "ok": false, "summary": { /* … */ } }]
+}
+```
+
+`stoppedAt` is one of `check | wrap | install | dist`. Read `WRAP-CHECKLIST.md` (or its [Castellano](WRAP-CHECKLIST.es.md) / [Français](WRAP-CHECKLIST.fr.md) versions) for the full rule set behind the `check` stage.
 
 ---
 
@@ -450,11 +534,13 @@ When running inside an MCP-enabled agent (Claude with `bonita-ai-agent-mcp`), th
 
 | MCP tool | CLI equivalent |
 |----------|----------------|
+| `prepare_custom_page` | `bonita-page prepare ...` |
 | `scaffold_custom_page` | `bonita-page scaffold ...` |
 | `wrap_existing_app` | `bonita-page wrap ...` |
+| `check_custom_page_project` | `bonita-page check [project-dir]` |
 | `validate_custom_page_zip` | `bonita-page validate ...` |
 | `build_custom_page` | `bonita-page build ...` |
 | `get_deployment_guide` | (no CLI equivalent — read `docs/DEPLOYMENT.md` or `docs/DEPLOY_2025.md`) |
 | `list_custom_page_examples` | `ls examples/` |
 
-Both flows call the functions in `scripts/{scaffold,wrap,validate,build}.js`. Single source of truth — fixes propagate to both.
+Both flows call the functions in `scripts/{prepare,scaffold,wrap,check,validate,build}.js`. Single source of truth — fixes propagate to both.

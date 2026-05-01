@@ -16,6 +16,7 @@ import { wrap } from '../../scripts/wrap.js';
 import { validate } from '../../scripts/validate.js';
 import { build } from '../../scripts/build.js';
 import { check } from '../../scripts/check.js';
+import { prepare } from '../../scripts/prepare.js';
 import { readFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +31,10 @@ function flagsFromArgs(args) {
 }
 
 export const handlers = {
+  async prepare_custom_page(args) {
+    return prepare(flagsFromArgs(args));
+  },
+
   async scaffold_custom_page(args) {
     return scaffold(flagsFromArgs(args));
   },

@@ -6,8 +6,10 @@ This toolkit ships ready-to-register tools for any MCP server (Bonita-AI-Agent o
 
 | Tool | Purpose |
 |------|---------|
-| `scaffold_custom_page` | Create a NEW custom-page project (React / Vue / Angular) from a template |
+| `prepare_custom_page` | One-shot happy path: check + wrap + npm install + dist on an existing SPA |
+| `scaffold_custom_page` | Create a NEW custom-page project (React / Vue / Angular / Svelte / Solid / Qwik) from a template |
 | `wrap_existing_app` | Take an EXISTING SPA and add the Bonita custom-page layer (page.properties, packaging, docs) |
+| `check_custom_page_project` | Read-only pre-flight check against the WRAP-CHECKLIST rules |
 | `validate_custom_page_zip` | Check a ZIP has the layout Bonita requires |
 | `build_custom_page` | Run install + build:bonita / dist on a project, return ZIP path |
 | `get_deployment_guide` | Return the step-by-step guide for Bonita 7.x or 2025.x |
@@ -59,8 +61,10 @@ import json, subprocess
 
 def call_bonita_tool(tool_name, args):
     cmd_map = {
+        'prepare_custom_page':        ['prepare'],
         'scaffold_custom_page':       ['scaffold'],
         'wrap_existing_app':          ['wrap'],
+        'check_custom_page_project':  ['check'],
         'validate_custom_page_zip':   ['validate', args.pop('zipPath')],
         'build_custom_page':          ['build', args.pop('projectDir')],
     }

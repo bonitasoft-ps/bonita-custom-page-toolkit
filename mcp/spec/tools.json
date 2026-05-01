@@ -4,6 +4,54 @@
   "description": "Generate, wrap, validate and build Bonita custom pages — six supported frameworks (React, Vue, Angular, Svelte 5, SolidJS, Qwik). The toolkit at github.com/bonitasoft-ps/bonita-custom-page-toolkit includes runnable examples, framework skills with deployment rules, and a multilingual deployment guide for Bonita 2025.x. Tools call the same functions the standalone bonita-page CLI uses — single source of truth.",
   "tools": [
     {
+      "name": "prepare_custom_page",
+      "title": "All-in-one: check + wrap + install + build an existing SPA",
+      "description": "ONE-SHOT happy path for an EXISTING React/Vue/Angular/Svelte/Solid/Qwik project on disk. Runs the full pipeline in order and STOPS at the first failed stage with a structured reason:\n  1. `check`   — read-only verification against docs/WRAP-CHECKLIST.md\n  2. `wrap`    — adds page.properties, scripts, docs, build helpers\n  3. `install` — `npm install` if `node_modules` is missing\n  4. `dist`    — `npm run dist` → ZIP + multilingual deploy docs\n\nReturns `{ ok, stoppedAt?, reason?, framework, zipPath, docs, nextSteps, stages }`. If `ok=false`, `stoppedAt` says which stage failed and `reason` is human-readable.\n\n— Use BEFORE calling this tool: confirm the user has a project directory and ASK for `name` and `appToken`. Framework is auto-detected. This is the preferred tool when the user trusts the project conforms (or wants a single round-trip).\n\n— Don't use when the user wants a NEW project — call `scaffold_custom_page` instead. Don't use if they want fine-grained control over each step — call `check_custom_page_project` + `wrap_existing_app` + `build_custom_page` separately.\n\n— After this tool succeeds: hand the user `zipPath` to upload to Bonita; `nextSteps` lists the exact admin URLs.\n\n— After this tool fails on `check`: review the issues, ask the user to apply the fix per WRAP-CHECKLIST.md, then re-run. If the user is confident the warnings are non-fatal they can pass `skipCheck: true`.",
+      "inputSchema": {
+        "type": "object",
+        "required": ["name", "appToken"],
+        "properties": {
+          "framework": {
+            "type": "string",
+            "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"],
+            "description": "If omitted, auto-detected from package.json or angular.json. Pass explicitly only if detection fails."
+          },
+          "targetDir": {
+            "type": "string",
+            "description": "Absolute path of the EXISTING project. Default: current working directory. Must contain a package.json (or angular.json for Angular)."
+          },
+          "name": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Internal page name in camelCase. Becomes 'custompage_<name>' and 'page-<name>.zip'."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "Label shown in Bonita admin. Defaults to `name`."
+          },
+          "appToken": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+            "description": "Bonita Application token. URL: /bonita/apps/{appToken}/{pageToken}/."
+          },
+          "pageToken": {
+            "type": "string",
+            "default": "home"
+          },
+          "skipCheck": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, proceed past the `check` stage even when it reports issues. Use only when the user has acknowledged the warnings."
+          },
+          "skipInstall": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, skip `npm install` even when node_modules is missing. Useful for monorepo layouts where deps are installed at a parent path."
+          }
+        }
+      }
+    },
+    {
       "name": "scaffold_custom_page",
       "title": "Scaffold a new Bonita custom page project",
       "description": "Create a NEW Bonita custom page project from one of the six framework templates. Use when the user explicitly says 'create a new app/page', 'scaffold a project', or doesn't have an existing codebase. The result is a complete project on disk with src/, page.properties, build scripts and multilingual deploy docs — ready to `npm install && npm run dist`.\n\n— Use BEFORE calling this tool: ASK the user for `name`, `appToken`, and which framework (don't assume). Optionally ask `displayName`, `pageToken` (default 'home'), and `targetDir`. See the bonita-custom-page skill §Questions to ask.\n\n— Don't use this when the user has an EXISTING SPA — call `wrap_existing_app` instead.\n\n— After this tool succeeds: tell the user to `cd` into the project directory and run `npm run dist` (or `./build.sh`). The output JSON's `nextSteps` field gives the exact commands.",
