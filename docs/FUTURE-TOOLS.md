@@ -8,7 +8,16 @@ When a tool here is implemented, move its entry into `mcp/spec/tools.json`, add 
 
 ## `implement_demo_for_framework`
 
-**Status**: **shipped** — handler at `mcp/handlers/index.js`, CLI at `bonita-page implement-demo`, full implementation in `scripts/implement-demo/` and `scripts/implement-demo.js`. Vue adapter complete; the other 5 frameworks generate framework-agnostic domain (types + seeds) and emit a `notSupportedMessage` warning until their adapter is added.
+**Status**: **shipped — all 6 framework adapters complete**. Handler at `mcp/handlers/index.js`, CLI at `bonita-page implement-demo`, implementation in `scripts/implement-demo/` and `scripts/implement-demo.js`. Each framework emits its idiomatic state library and routing:
+
+| Framework | Store API | Page extension | Router |
+|---|---|---|---|
+| Vue | Pinia (`defineStore`) | `.vue` | `vue-router` + `createWebHashHistory` |
+| React | Zustand (`create`) | `.tsx` | `react-router-dom` + `createHashRouter` |
+| Angular | `@Injectable` + `signal()` | `.component.ts` | `@angular/router` `Routes` |
+| Svelte 5 | Class with `$state` in `.svelte.ts` | `.svelte` | `svelte-spa-router` route map |
+| Solid | `createStore` module-level | `.tsx` | `@solidjs/router` `HashRouter` |
+| Qwik | Module-level `_items` + `useSignal` | `.tsx` (`component$`) | Manual hash router (Qwik City incompatible) |
 
 Sample spec in `examples/demo-spec-sample.json`. The contract below remains the canonical reference.
 
