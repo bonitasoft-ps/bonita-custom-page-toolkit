@@ -8,6 +8,8 @@ import { validate } from './validate.js';
 import { build } from './build.js';
 import { check } from './check.js';
 import { prepare } from './prepare.js';
+import { setupTesting } from './setup-testing.js';
+import { runTests } from './test.js';
 
 const HELP = `bonita-page — generate, wrap, validate and build Bonita custom pages
 
@@ -15,13 +17,15 @@ USAGE
   bonita-page <command> [options]
 
 COMMANDS
-  prepare     ALL-IN-ONE: check + wrap + npm install + build → ZIP + deploy docs
-  scaffold    Create a NEW Bonita custom page project from a framework template
-  wrap        Take an EXISTING SPA project and turn it into a Bonita custom page
-  check       Pre-flight check: read-only verification that a project is ready to wrap
-  validate    Verify a custom-page ZIP has the layout Bonita requires
-  build       Run npm install + build:bonita on a project (wrapper for clients)
-  help        Show this message
+  prepare         ALL-IN-ONE: check + wrap + npm install + build → ZIP + deploy docs
+  scaffold        Create a NEW Bonita custom page project from a framework template
+  wrap            Take an EXISTING SPA project and turn it into a Bonita custom page
+  check           Pre-flight check: read-only verification that a project is ready to wrap
+  setup-testing   Add the toolkit's testing standard (Vitest + Testing Library + Playwright + MSW + ESLint + Prettier + husky)
+  test            Run the project's tests (proxies to npm test / npm run test:coverage / npm run e2e)
+  validate        Verify a custom-page ZIP has the layout Bonita requires
+  build           Run npm install + build:bonita on a project (wrapper for clients)
+  help            Show this message
 
 EXAMPLES
   # ★ HAPPY PATH for clients: one command does everything
@@ -123,6 +127,23 @@ async function main() {
         const result = await check(dir);
         console.log(JSON.stringify(result, null, 2));
         process.exit(result.ok ? 0 : 1);
+      }
+      case 'setup-testing': {
+        const dir = positional[0] || flags['project-dir'] || flags.projectDir || process.cwd();
+        const result = setupTesting(dir);
+        console.log(JSON.stringify(result, null, 2));
+        process.exit(result.ok ? 0 : 1);
+      }
+      case 'test': {
+        const result = await runTests({
+          projectDir: positional[0] || flags['project-dir'] || flags.projectDir,
+          coverage: flags.coverage,
+          e2e: flags.e2e,
+        });
+        if (result.ok === false) {
+          console.error(`Error: ${result.reason ?? 'tests failed'}`);
+        }
+        process.exit(result.ok ? 0 : (result.exitCode ?? 1));
       }
       default:
         console.error(`Unknown command: ${cmd}`);

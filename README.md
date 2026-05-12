@@ -89,6 +89,22 @@ cd /path/to/their-existing-app
 # Returns 0 + JSON report if OK, exits 1 otherwise
 ```
 
+### Add the testing standard to any project
+
+```bash
+cd /path/to/their-existing-app
+/path/to/bonita-custom-page-toolkit/bonita-page.sh setup-testing
+# Adds Vitest (or Jest for Angular) + Testing Library + Playwright + MSW
+# + ESLint + Prettier + husky + lint-staged, with per-folder coverage
+# thresholds (80% blocking on src/api, src/stores, src/composables, src/hooks).
+
+npm install
+npm run test:coverage    # → blocks if logic falls under 80%
+npm run e2e              # → Playwright smoke
+```
+
+Full reference in [`docs/TESTING.md`](docs/TESTING.md) and the methodology rationale in [`skills/bonita-testing/SKILL.md`](skills/bonita-testing/SKILL.md).
+
 ---
 
 ## Quick start (with Claude / MCP)
@@ -101,6 +117,8 @@ If your environment has the Bonita-AI-Agent MCP (or any MCP) configured, the too
 | `scaffold_custom_page` | *"Create a Vue custom page named X for app Y"* |
 | `wrap_existing_app` | *"Wrap this Angular project as a Bonita custom page"* |
 | `check_custom_page_project` | *"Is this project ready to wrap?"* |
+| `setup_testing_for_project` | *"Add the toolkit's testing standard (Vitest + Playwright + MSW + ESLint…) to this project"* |
+| `test_custom_page_project` | *"Run the test suite — with coverage"* |
 | `validate_custom_page_zip` | *"Check this ZIP is Bonita-compatible"* |
 | `build_custom_page` | *"Build the project at this path"* |
 | `get_deployment_guide` | *"How do I deploy to Bonita 2025.x?"* |
@@ -143,10 +161,7 @@ bonita-custom-page-toolkit/
 │   ├── bonita-solid-app/            SolidJS (createStore, all-CSS-in-app.css rule)
 │   └── bonita-qwik-app/             Qwik SPA mode (useVisibleTask$, module-level helpers)
 │
-├── examples/                    ← Nine runnable examples (3 task-viewer + 6 directory-bonita)
-│   ├── react-task-viewer/           Generic task list demo, port :8080
-│   ├── vue-task-viewer/
-│   ├── angular-task-viewer/
+├── examples/                    ← Six runnable demo apps — one per framework
 │   ├── react-directory-bonita/      Turnkey deploy to a specific Application
 │   ├── vue-directory-bonita/
 │   ├── angular-directory-bonita/
@@ -221,8 +236,6 @@ cd examples/svelte-directory-bonita        # or any of the six
 # Upload the ZIP per docs/DEPLOY_2025.md
 ```
 
-For three more minimal examples (single-page task list, no dashboard chrome) see [`examples/{react,vue,angular}-task-viewer/`](examples/).
-
 ---
 
 ## Choosing a framework — measured comparison
@@ -266,12 +279,12 @@ cd examples/react-directory-bonita
 
 | Example | URL it deploys to |
 |---|---|
-| `react-task-viewer/` | Generic; pick your own application |
-| `react-directory-bonita/` | `/bonita/apps/appDirectoryBonitaReact/home/` |
-| `vue-task-viewer/` | Generic |
-| `vue-directory-bonita/` | `/bonita/apps/appDirectoryBonitaVue/home/` |
-| `angular-task-viewer/` | Generic |
+| `react-directory-bonita/`   | `/bonita/apps/appDirectoryBonitaReact/home/` |
+| `vue-directory-bonita/`     | `/bonita/apps/appDirectoryBonitaVue/home/` |
 | `angular-directory-bonita/` | `/bonita/apps/appDirectoryBonitaAngular/home/` |
+| `svelte-directory-bonita/`  | `/bonita/apps/appDirectoryBonitaSvelte/home/` |
+| `solid-directory-bonita/`   | `/bonita/apps/appDirectoryBonitaSolid/home/` |
+| `qwik-directory-bonita/`    | `/bonita/apps/appDirectoryBonitaQwik/home/` |
 
 ---
 

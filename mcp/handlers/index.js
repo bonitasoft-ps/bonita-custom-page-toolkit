@@ -17,6 +17,8 @@ import { validate } from '../../scripts/validate.js';
 import { build } from '../../scripts/build.js';
 import { check } from '../../scripts/check.js';
 import { prepare } from '../../scripts/prepare.js';
+import { setupTesting } from '../../scripts/setup-testing.js';
+import { runTests } from '../../scripts/test.js';
 import { readFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -57,6 +59,18 @@ export const handlers = {
     return check(args.projectDir || process.cwd());
   },
 
+  async setup_testing_for_project(args = {}) {
+    return setupTesting(args.projectDir || process.cwd());
+  },
+
+  async test_custom_page_project(args = {}) {
+    return runTests({
+      projectDir: args.projectDir,
+      coverage: args.coverage,
+      e2e: args.e2e,
+    });
+  },
+
   async get_deployment_guide({ version = '2025.x' } = {}) {
     const fileMap = {
       '7.x': 'docs/DEPLOYMENT.md',
@@ -74,28 +88,10 @@ export const handlers = {
     return {
       examples: [
         {
-          name: 'react-task-viewer',
-          framework: 'React',
-          path: 'examples/react-task-viewer',
-          description: 'Task list demo on default Bonita port (8080). Login + session probe + table.',
-        },
-        {
-          name: 'vue-task-viewer',
-          framework: 'Vue 3',
-          path: 'examples/vue-task-viewer',
-          description: 'Same scenario as React example, in Vue 3 + Pinia + Element Plus.',
-        },
-        {
-          name: 'angular-task-viewer',
-          framework: 'Angular',
-          path: 'examples/angular-task-viewer',
-          description: 'Same scenario in Angular standalone + signals. Uses APP_INITIALIZER for the session probe.',
-        },
-        {
           name: 'react-directory-bonita',
           framework: 'React',
           path: 'examples/react-directory-bonita',
-          description: 'Turnkey deploy to a custom Application (appDirectoryBonitaReact). Ships build.sh / build.bat with multilingual EN/FR/ES deploy docs.',
+          description: 'Turnkey deploy to a custom Application (appDirectoryBonitaReact). Ships build.sh / build.bat with multilingual EN/FR/ES deploy docs. Includes the toolkit testing standard.',
         },
         {
           name: 'vue-directory-bonita',

@@ -538,9 +538,11 @@ When running inside an MCP-enabled agent (Claude with `bonita-ai-agent-mcp`), th
 | `scaffold_custom_page` | `bonita-page scaffold ...` |
 | `wrap_existing_app` | `bonita-page wrap ...` |
 | `check_custom_page_project` | `bonita-page check [project-dir]` |
+| `setup_testing_for_project` | `bonita-page setup-testing [project-dir]` |
+| `test_custom_page_project` | `bonita-page test [--coverage] [--e2e]` |
 | `validate_custom_page_zip` | `bonita-page validate ...` |
 | `build_custom_page` | `bonita-page build ...` |
 | `get_deployment_guide` | (no CLI equivalent — read `docs/DEPLOYMENT.md` or `docs/DEPLOY_2025.md`) |
 | `list_custom_page_examples` | `ls examples/` |
 
-Both flows call the functions in `scripts/{prepare,scaffold,wrap,check,validate,build}.js`. Single source of truth — fixes propagate to both.
+Both flows call the functions in `scripts/{prepare,scaffold,wrap,check,setup-testing,test,validate,build}.js`. Single source of truth — fixes propagate to both.

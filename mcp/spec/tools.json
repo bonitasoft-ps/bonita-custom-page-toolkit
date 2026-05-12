@@ -144,6 +144,44 @@
       }
     },
     {
+      "name": "setup_testing_for_project",
+      "title": "Add the toolkit's testing standard to an existing project",
+      "description": "Apply the cross-framework testing standard (Vitest + Testing Library — Jest for Angular — + Playwright + MSW + ESLint + Prettier + husky + lint-staged) to a Bonita custom-page project. Idempotent: re-running on an already-configured project is a no-op except for additive merges. Framework is auto-detected from package.json/angular.json.\n\nIt adds: scripts (`test`, `test:watch`, `test:coverage`, `e2e`, `lint`, `format`), devDeps for the framework's testing stack, `vitest.config.ts` with per-folder coverage thresholds (api/stores/composables = 80% blocking), `playwright.config.ts`, `src/test-setup.ts`, `src/mocks/{handlers,server}.ts` with Bonita REST API mocks, `eslint.config.js`, `.prettierrc`, `.prettierignore`, and a sample API smoke test + an E2E smoke test.\n\nIt does NOT touch the user's existing `src/` code beyond creating sibling `__tests__/` folders.\n\n— Use BEFORE: ask the user `projectDir` (default: cwd). Confirm they're OK adding several dev dependencies (~80 MB once installed).\n\n— Don't use when: the project ALREADY has testing configured (check `existingTesting.hasTests` in the response — it's still safe to run but you should explain that it'll merge, not replace).\n\n— After this tool succeeds: run `npm install` in the project, then `bonita-page test` (or the `test_custom_page_project` MCP tool) to verify a green baseline.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectDir": {
+            "type": "string",
+            "description": "Absolute path to the project. Default: current working directory. Must contain a package.json (or angular.json for Angular)."
+          }
+        }
+      }
+    },
+    {
+      "name": "test_custom_page_project",
+      "title": "Run the test suite of a custom-page project",
+      "description": "Execute the project's tests by proxying to its own npm scripts. Returns `{ ok, exitCode, scriptName, projectDir }`.\n\nMode selection:\n  - default → runs `npm test` (Vitest run, single pass)\n  - coverage=true → runs `npm run test:coverage` (enforces per-folder thresholds; FAILS if api/stores/composables fall under 80%)\n  - e2e=true → runs `npm run e2e` (Playwright; starts dev server if needed)\n\n— Use when: the user asks 'run the tests', 'check coverage', or after `setup_testing_for_project` to verify a green baseline.\n— Don't use when: the project has no `test` script. Call `setup_testing_for_project` first.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectDir": {
+            "type": "string",
+            "description": "Absolute path to the project. Default: current working directory."
+          },
+          "coverage": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, runs `npm run test:coverage` instead of `npm test`."
+          },
+          "e2e": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, runs `npm run e2e` (Playwright). Mutually exclusive with `coverage` (e2e wins if both are set)."
+          }
+        }
+      }
+    },
+    {
       "name": "check_custom_page_project",
       "title": "Pre-flight check on a project before wrapping",
       "description": "Read-only verification of an existing SPA against the rules in docs/WRAP-CHECKLIST.md. Returns `{ ok, framework, checks: {...}, issues: [...] }`. Use this BEFORE `wrap_existing_app` to catch missing pieces (wrong base path, browser router instead of hash, missing credentials:'include') without modifying the user's code. The check is read-only and idempotent.\n\n— Use when: user asks 'is my project ready to deploy as a Bonita custom page?' or you're about to call wrap_existing_app and want a clean signal.\n— Don't use to fix anything — this only reports. The user (or you, with their permission) applies the fixes per the issues array.",
