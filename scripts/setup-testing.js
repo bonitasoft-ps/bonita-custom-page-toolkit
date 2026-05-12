@@ -343,6 +343,55 @@ import { handlers } from './handlers';
 export const server = setupServer(...handlers);
 `;
 
+const JEST_CONFIG_ANGULAR = `/** @type {import('jest').Config} */
+module.exports = {
+  preset: 'jest-preset-angular',
+  testEnvironment: 'jsdom',
+  // jest-preset-angular already wires setup-jest internally; project-specific
+  // hooks (MSW, jest-dom) can be added by extending setup-jest.ts and
+  // referencing it here once you confirm the correct option name for your
+  // jest-preset-angular version.
+  testMatch: ['<rootDir>/src/**/*.spec.ts'],
+  testPathIgnorePatterns: ['<rootDir>/tests/e2e/', '<rootDir>/node_modules/'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.spec.ts',
+    '!src/test-setup.ts',
+    '!src/mocks/**',
+    '!src/main.ts',
+    '!src/polyfills.ts',
+  ],
+  coverageThreshold: {
+    'src/app/api/': { lines: 80, functions: 80, branches: 75 },
+    'src/app/services/': { lines: 80, functions: 80, branches: 75 },
+    'src/app/stores/': { lines: 80, functions: 80, branches: 75 },
+  },
+  transformIgnorePatterns: ['node_modules/(?!(@angular|rxjs|msw|@bundled-es-modules)/.*)'],
+};
+`;
+
+const SETUP_JEST_ANGULAR = `import 'jest-preset-angular/setup-jest';
+import '@testing-library/jest-dom';
+import { server } from './src/mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+`;
+
+const TSCONFIG_SPEC_ANGULAR = `{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": ["jest", "node"]
+  },
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts", "setup-jest.ts"]
+}
+`;
+
 const PLAYWRIGHT_CONFIG = `import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
@@ -465,7 +514,42 @@ export default tseslint.config(
 }
 
 function sampleApiTest(framework) {
-  const ext = framework === 'react' ? 'ts' : 'ts';
+  if (framework === 'angular') {
+    return {
+      path: 'src/api/__tests__/client.spec.ts',
+      content: `// Sample API smoke for Angular projects.
+// MSW + Jest + Angular requires extra Babel transform for node_modules/msw.
+// Baseline uses a manual fetch mock; migrate to MSW once you wire the
+// transformer (or switch this project to Vitest).
+
+describe('Bonita API client (smoke)', () => {
+  it('parses a JSON response from the session endpoint', async () => {
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ user_name: 'test.user' }),
+      text: async () => JSON.stringify({ user_name: 'test.user' }),
+      headers: new Map([['content-type', 'application/json']]),
+    } as unknown as Response);
+    const original = globalThis.fetch;
+    (globalThis as { fetch: typeof fetch }).fetch = fetchMock;
+
+    try {
+      const res = await fetch('/bonita/API/system/session/unusedId', {
+        credentials: 'include',
+      });
+      const json = (await res.json()) as { user_name: string };
+      expect(json.user_name).toBe('test.user');
+      expect(fetchMock).toHaveBeenCalled();
+    } finally {
+      (globalThis as { fetch: typeof fetch }).fetch = original;
+    }
+  });
+});
+`,
+    };
+  }
+  const ext = 'ts';
   return {
     path: `src/api/__tests__/client.test.${ext}`,
     content: `import { describe, expect, it } from 'vitest';
@@ -507,7 +591,11 @@ export function setupTesting(projectDir) {
   added.push('package.json (scripts + devDeps + lint-staged merged)');
 
   // 2. Configs
-  if (framework !== 'angular') {
+  if (framework === 'angular') {
+    if (copyIfMissing(dir, 'jest.config.cjs', JEST_CONFIG_ANGULAR)) added.push('jest.config.cjs');
+    if (copyIfMissing(dir, 'setup-jest.ts', SETUP_JEST_ANGULAR)) added.push('setup-jest.ts');
+    if (copyIfMissing(dir, 'tsconfig.spec.json', TSCONFIG_SPEC_ANGULAR)) added.push('tsconfig.spec.json');
+  } else {
     if (copyIfMissing(dir, 'vitest.config.ts', vitestConfig(framework))) {
       added.push('vitest.config.ts');
     } else {

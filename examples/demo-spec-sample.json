@@ -1,0 +1,51 @@
+{
+  "domain": "invoice-tracker",
+  "palette": {
+    "primary": "#2d3748",
+    "secondary": "#4a5568",
+    "accent": "#3182ce"
+  },
+  "entities": [
+    {
+      "name": "Invoice",
+      "seedCount": 8,
+      "fields": [
+        { "name": "id", "type": "string" },
+        { "name": "cliente", "type": "string" },
+        { "name": "monto", "type": "number" },
+        { "name": "estado", "type": "enum", "options": ["Pendiente", "Pagada", "Vencida"] },
+        { "name": "fechaEmision", "type": "date" }
+      ]
+    },
+    {
+      "name": "Customer",
+      "seedCount": 5,
+      "fields": [
+        { "name": "id", "type": "string" },
+        { "name": "nombre", "type": "string" },
+        { "name": "email", "type": "string" }
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "Facturas",
+      "path": "/facturas",
+      "kind": "list-detail",
+      "primaryEntity": "Invoice",
+      "filters": ["cliente", "estado"],
+      "actions": ["marcar-pagada", "anular"]
+    },
+    {
+      "name": "Resumen",
+      "path": "/resumen",
+      "kind": "dashboard"
+    },
+    {
+      "name": "NuevaFactura",
+      "path": "/nueva",
+      "kind": "form-wizard",
+      "primaryEntity": "Invoice"
+    }
+  ]
+}

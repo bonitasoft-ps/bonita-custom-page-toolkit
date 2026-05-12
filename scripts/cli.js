@@ -10,6 +10,8 @@ import { check } from './check.js';
 import { prepare } from './prepare.js';
 import { setupTesting } from './setup-testing.js';
 import { runTests } from './test.js';
+import { implementDemo } from './implement-demo.js';
+import { readFileSync, existsSync } from 'node:fs';
 
 const HELP = `bonita-page — generate, wrap, validate and build Bonita custom pages
 
@@ -23,6 +25,7 @@ COMMANDS
   check           Pre-flight check: read-only verification that a project is ready to wrap
   setup-testing   Add the toolkit's testing standard (Vitest + Testing Library + Playwright + MSW + ESLint + Prettier + husky)
   test            Run the project's tests (proxies to npm test / npm run test:coverage / npm run e2e)
+  implement-demo  Generate a full demo (scaffold + types/seeds/stores/pages + tests + ZIP) from a DemoSpec JSON
   validate        Verify a custom-page ZIP has the layout Bonita requires
   build           Run npm install + build:bonita on a project (wrapper for clients)
   help            Show this message
@@ -144,6 +147,28 @@ async function main() {
           console.error(`Error: ${result.reason ?? 'tests failed'}`);
         }
         process.exit(result.ok ? 0 : (result.exitCode ?? 1));
+      }
+      case 'implement-demo': {
+        // The spec is a JSON file path on disk — CLI doesn't accept inline JSON.
+        const specPath = flags.spec || flags['spec-file'];
+        if (!specPath || !existsSync(specPath)) {
+          console.error('Error: --spec=<path-to-spec.json> is required');
+          process.exit(2);
+        }
+        const spec = JSON.parse(readFileSync(specPath, 'utf8'));
+        const result = await implementDemo({
+          framework: flags.framework,
+          name: flags.name,
+          appToken: flags['app-token'] || flags.appToken,
+          displayName: flags['display-name'] || flags.displayName,
+          pageToken: flags['page-token'] || flags.pageToken,
+          targetDir: flags['target-dir'] || flags.targetDir,
+          spec,
+          includeTesting: flags['no-testing'] ? false : true,
+          skipBuild: Boolean(flags['skip-build']),
+        });
+        console.log(JSON.stringify(result, null, 2));
+        process.exit(result.ok ? 0 : 1);
       }
       default:
         console.error(`Unknown command: ${cmd}`);

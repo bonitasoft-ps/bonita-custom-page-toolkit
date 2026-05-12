@@ -540,6 +540,7 @@ When running inside an MCP-enabled agent (Claude with `bonita-ai-agent-mcp`), th
 | `check_custom_page_project` | `bonita-page check [project-dir]` |
 | `setup_testing_for_project` | `bonita-page setup-testing [project-dir]` |
 | `test_custom_page_project` | `bonita-page test [--coverage] [--e2e]` |
+| `implement_demo_for_framework` | `bonita-page implement-demo --framework=... --name=... --app-token=... --spec=<path-to-spec.json>` |
 | `validate_custom_page_zip` | `bonita-page validate ...` |
 | `build_custom_page` | `bonita-page build ...` |
 | `get_deployment_guide` | (no CLI equivalent — read `docs/DEPLOYMENT.md` or `docs/DEPLOY_2025.md`) |

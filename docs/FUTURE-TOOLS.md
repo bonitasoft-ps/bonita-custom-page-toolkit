@@ -8,7 +8,9 @@ When a tool here is implemented, move its entry into `mcp/spec/tools.json`, add 
 
 ## `implement_demo_for_framework`
 
-**Status**: designed, not wired.
+**Status**: **shipped** — handler at `mcp/handlers/index.js`, CLI at `bonita-page implement-demo`, full implementation in `scripts/implement-demo/` and `scripts/implement-demo.js`. Vue adapter complete; the other 5 frameworks generate framework-agnostic domain (types + seeds) and emit a `notSupportedMessage` warning until their adapter is added.
+
+Sample spec in `examples/demo-spec-sample.json`. The contract below remains the canonical reference.
 
 **Intent**: generate a complete "directory-bonita" demo for a given framework, ready to `npm install && npm run dist`. Replaces the manual workflow of scaffolding + adding business logic + UI components + tests. The agent describes a domain (e.g. "BPM tasks inbox with KPIs and an action bar"), the tool produces a runnable project with that domain wired in.
 

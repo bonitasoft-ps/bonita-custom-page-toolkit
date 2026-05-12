@@ -119,6 +119,7 @@ If your environment has the Bonita-AI-Agent MCP (or any MCP) configured, the too
 | `check_custom_page_project` | *"Is this project ready to wrap?"* |
 | `setup_testing_for_project` | *"Add the toolkit's testing standard (Vitest + Playwright + MSW + ESLint…) to this project"* |
 | `test_custom_page_project` | *"Run the test suite — with coverage"* |
+| `implement_demo_for_framework` | *"From this DemoSpec, generate a full Vue/React/… custom page (scaffold + types + seeds + stores + pages + tests + ZIP)"* |
 | `validate_custom_page_zip` | *"Check this ZIP is Bonita-compatible"* |
 | `build_custom_page` | *"Build the project at this path"* |
 | `get_deployment_guide` | *"How do I deploy to Bonita 2025.x?"* |

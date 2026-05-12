@@ -19,6 +19,7 @@ import { check } from '../../scripts/check.js';
 import { prepare } from '../../scripts/prepare.js';
 import { setupTesting } from '../../scripts/setup-testing.js';
 import { runTests } from '../../scripts/test.js';
+import { implementDemo } from '../../scripts/implement-demo.js';
 import { readFile } from 'node:fs/promises';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -69,6 +70,10 @@ export const handlers = {
       coverage: args.coverage,
       e2e: args.e2e,
     });
+  },
+
+  async implement_demo_for_framework(args) {
+    return implementDemo(args);
   },
 
   async get_deployment_guide({ version = '2025.x' } = {}) {

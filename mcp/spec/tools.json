@@ -158,6 +158,89 @@
       }
     },
     {
+      "name": "implement_demo_for_framework",
+      "title": "Generate a complete demo (scaffold + domain + pages + tests + ZIP) for a framework",
+      "description": "ONE-CALL generator. Takes a framework + a DemoSpec describing the domain (entities, fields, pages, palette) and produces a runnable Bonita custom-page project with: TypeScript types per entity, deterministic mock seed data, framework-native stores (Pinia/Zustand/NgRx/Signals/Svelte stores), one Vue/React/Angular/Svelte/Solid/Qwik page per spec.pages[] (list-detail | dashboard | form-wizard), router wired, palette applied, optional testing layer (Vitest + Playwright + MSW), and a built ZIP ready to upload to Bonita 2025.x.\n\nFull spec contract in docs/FUTURE-TOOLS.md. Returns `{ ok, framework, projectDir, zipPath, filesGenerated, warnings, nextSteps }`.\n\n**Status**: Vue adapter is feature-complete. React/Angular/Svelte/Solid/Qwik adapters generate domain (types + seeds) but emit a `notSupportedMessage` warning for stores/pages — the agent should wire those by hand from `examples/<framework>-directory-bonita/` until the adapter ships.\n\n— Use BEFORE: validate the spec mentally (every page.kind is one of list-detail/dashboard/form-wizard, every page.primaryEntity matches an entity in entities[]). Confirm targetDir does NOT exist.\n\n— Don't use when: the user already has a project they want to extend. Use `scaffold_custom_page` + manual code in that case.\n\n— After this tool succeeds: read the `warnings` array, then `cd projectDir && npm install && npm run dist` (or use `build_custom_page`).",
+      "inputSchema": {
+        "type": "object",
+        "required": ["framework", "name", "appToken", "spec"],
+        "properties": {
+          "framework": {
+            "type": "string",
+            "enum": ["react", "vue", "angular", "svelte", "solid", "qwik"]
+          },
+          "name": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9]*$" },
+          "displayName": { "type": "string" },
+          "appToken": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9]*$" },
+          "pageToken": { "type": "string", "default": "home" },
+          "targetDir": { "type": "string" },
+          "includeTesting": { "type": "boolean", "default": true },
+          "skipBuild": { "type": "boolean", "default": false },
+          "spec": {
+            "type": "object",
+            "required": ["domain", "entities", "pages"],
+            "properties": {
+              "domain": { "type": "string" },
+              "palette": {
+                "type": "object",
+                "properties": {
+                  "primary": { "type": "string" },
+                  "secondary": { "type": "string" },
+                  "accent": { "type": "string" }
+                }
+              },
+              "entities": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["name", "fields"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "fields": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "required": ["name", "type"],
+                        "properties": {
+                          "name": { "type": "string" },
+                          "type": {
+                            "type": "string",
+                            "enum": ["string", "number", "boolean", "date", "enum", "object", "array"]
+                          },
+                          "options": { "type": "array", "items": { "type": "string" } },
+                          "ref": { "type": "string" }
+                        }
+                      }
+                    },
+                    "seedCount": { "type": "integer", "default": 5 }
+                  }
+                }
+              },
+              "pages": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "required": ["name", "path", "kind"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "path": { "type": "string" },
+                    "kind": { "type": "string", "enum": ["list-detail", "dashboard", "form-wizard"] },
+                    "primaryEntity": { "type": "string" },
+                    "filters": { "type": "array", "items": { "type": "string" } },
+                    "metrics": { "type": "array", "items": { "type": "string" } },
+                    "actions": { "type": "array", "items": { "type": "string" } }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "test_custom_page_project",
       "title": "Run the test suite of a custom-page project",
       "description": "Execute the project's tests by proxying to its own npm scripts. Returns `{ ok, exitCode, scriptName, projectDir }`.\n\nMode selection:\n  - default → runs `npm test` (Vitest run, single pass)\n  - coverage=true → runs `npm run test:coverage` (enforces per-folder thresholds; FAILS if api/stores/composables fall under 80%)\n  - e2e=true → runs `npm run e2e` (Playwright; starts dev server if needed)\n\n— Use when: the user asks 'run the tests', 'check coverage', or after `setup_testing_for_project` to verify a green baseline.\n— Don't use when: the project has no `test` script. Call `setup_testing_for_project` first.",
