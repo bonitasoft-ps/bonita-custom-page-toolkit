@@ -103,53 +103,219 @@ By default `setup-testing` only installs MSW in **Node mode** (for Vitest/Jest).
 
 **If you add browser mode, the following safety pattern is mandatory.** Without it, MSW will run in production and silently intercept real Bonita calls.
 
-### Required setup
+### The pattern (abstract)
 
-1. **Generate the service worker** (one-time):
-   ```bash
-   npx msw init public/ --save
-   ```
+Four mandatory layers, identical across frameworks. Only the **syntax** of layers 1, 2 and 3 differs because the env-var system is framework-specific. Layers 4 and 5 are always the same.
 
-2. **Add `src/mocks/browser.ts`** sharing the same handlers as `src/mocks/server.ts`:
-   ```ts
-   import { setupWorker } from 'msw/browser';
-   import { handlers } from './handlers';
-   export const worker = setupWorker(...handlers);
-   ```
+| # | Layer | Catches |
+|---|---|---|
+| 1 | "Are we in dev?" guard | The agent forgets the env file but uses `npm run build` |
+| 2 | "Is the user opting in?" env flag | Mocks would interfere with a dev session pointing at a real Bonita |
+| 3 | Dynamic import of `mocks/browser` | Bundle bloat — MSW gets tree-shaken (~150 KB saved in prod) |
+| 4 | `.env.production` / equivalent forces flag OFF | Defence in depth — second-line trap |
+| 5 | Exclude `mockServiceWorker.js` from production ZIP | The SW file is in `public/` and gets copied to `dist/` — packaging step must trim it |
 
-3. **Boot MSW inside a double-guarded async function in `main.ts`** (`main.tsx` for React/Solid/Qwik, equivalent for Angular):
-   ```ts
-   async function startMocks() {
-     if (!import.meta.env.DEV) return;                       // ← prod cannot opt in
-     if (import.meta.env.VITE_USE_MOCKS !== 'true') return;  // ← per-dev opt-in
-     const { worker } = await import('@/mocks/browser');     // ← dynamic import: tree-shaken in prod
-     await worker.start({
-       onUnhandledRequest: 'bypass',                         // ← let unmocked calls hit Bonita
-       serviceWorker: { url: '/mockServiceWorker.js' },
-     });
-   }
-   ```
+### Common to all six frameworks
 
-4. **Environment files**:
-   ```
-   .env.development → VITE_USE_MOCKS=true   (committed; ON by default in dev)
-   .env.production  → VITE_USE_MOCKS=false  (committed; defence-in-depth)
-   ```
+```bash
+# One-time: install MSW worker and create the browser-mode entry point.
+npx msw init public/ --save
+```
 
-5. **Exclude the service worker from the production ZIP** — edit `scripts/package-bonita.js`:
-   ```js
-   const EXCLUDED_FROM_ARCHIVE = new Set(['mockServiceWorker.js']);
-   // in addDirToArchive: if (EXCLUDED_FROM_ARCHIVE.has(entry)) continue;
-   ```
+`src/mocks/browser.ts` (same code for every framework):
 
-### Why all four layers (defence-in-depth)
+```ts
+import { setupWorker } from 'msw/browser';
+import { handlers } from './handlers';
+export const worker = setupWorker(...handlers);
+```
 
-| Layer | Catches |
-|---|---|
-| `if (!import.meta.env.DEV)` | The agent forgets the env file but uses `npm run build` |
-| `if (VITE_USE_MOCKS !== 'true')` | Mocks would interfere with a dev session pointing at a real Bonita |
-| Dynamic `import('@/mocks/browser')` | Bundle bloat — MSW gets tree-shaken (~150 KB saved) |
-| Exclude `mockServiceWorker.js` from ZIP | The SW file is in `public/` and Vite copies it to `dist/` — packaging step trims it |
+`scripts/package-bonita.js` — always add:
+
+```js
+const EXCLUDED_FROM_ARCHIVE = new Set(['mockServiceWorker.js']);
+// inside addDirToArchive:
+if (EXCLUDED_FROM_ARCHIVE.has(entry)) continue;
+```
+
+### Per-framework variants — layers 1, 2, 3
+
+The "dev?" check, the env-var system and the entry-point file differ. **Vite-based frameworks** (React, Vue, Svelte, Solid, Qwik) all share the same syntax. **Angular** is different because it doesn't use Vite — it uses `@angular/build` with esbuild, where env injection works via `src/environments/` and the `fileReplacements` config.
+
+| Framework | Entry file | Layer 1 (dev?) | Layer 2 (opt-in) | Env files |
+|---|---|---|---|---|
+| Vue | `src/main.ts` | `import.meta.env.DEV` | `import.meta.env.VITE_USE_MOCKS === 'true'` | `.env.development`, `.env.production` |
+| React | `src/main.tsx` | `import.meta.env.DEV` | `import.meta.env.VITE_USE_MOCKS === 'true'` | `.env.development`, `.env.production` |
+| Svelte | `src/main.ts` | `import.meta.env.DEV` | `import.meta.env.VITE_USE_MOCKS === 'true'` | `.env.development`, `.env.production` |
+| Solid | `src/index.tsx` | `import.meta.env.DEV` | `import.meta.env.VITE_USE_MOCKS === 'true'` | `.env.development`, `.env.production` |
+| Qwik | `src/entry.tsx` | `import.meta.env.DEV` | `import.meta.env.VITE_USE_MOCKS === 'true'` | `.env.development`, `.env.production` |
+| Angular | `src/main.ts` | `!environment.production` | `environment.useMocks === true` | `src/environments/environment.ts` + `environment.prod.ts` (swapped by `fileReplacements`) |
+
+#### Vue (`src/main.ts`)
+
+```ts
+async function startMocks() {
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('@/mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+async function bootstrap() {
+  await startMocks();
+  const app = createApp(App);
+  app.use(createPinia());
+  app.use(router);
+  app.use(ElementPlus);
+  app.mount('#app');
+}
+bootstrap();
+```
+
+#### React (`src/main.tsx`)
+
+```tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { RouterProvider } from 'react-router-dom';
+import { router } from './router';
+
+async function startMocks() {
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+void startMocks().then(() => {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode><RouterProvider router={router} /></StrictMode>,
+  );
+});
+```
+
+#### Svelte 5 (`src/main.ts`)
+
+```ts
+import { mount } from 'svelte';
+import App from './App.svelte';
+
+async function startMocks() {
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+await startMocks();
+mount(App, { target: document.getElementById('app')! });
+```
+
+#### Solid (`src/index.tsx`)
+
+```tsx
+import { render } from 'solid-js/web';
+import App from './App';
+
+async function startMocks() {
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+void startMocks().then(() => {
+  render(() => <App />, document.getElementById('root')!);
+});
+```
+
+#### Qwik (`src/entry.tsx`, SPA-only mode)
+
+```tsx
+import { render } from '@builder.io/qwik';
+import Root from './root';
+
+async function startMocks() {
+  if (!import.meta.env.DEV) return;
+  if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+void startMocks().then(() => {
+  render(document.getElementById('app')!, <Root />);
+});
+```
+
+#### Angular (different — not Vite)
+
+Angular uses `@angular/build` (esbuild under the hood), not Vite. `import.meta.env.DEV` and `VITE_*` don't exist. Use Angular's standard env mechanism instead.
+
+`src/environments/environment.ts` (default = development):
+
+```ts
+export const environment = {
+  production: false,
+  useMocks: true,
+};
+```
+
+`src/environments/environment.prod.ts`:
+
+```ts
+export const environment = {
+  production: true,
+  useMocks: false,
+};
+```
+
+`angular.json` → `architect.build.configurations.production.fileReplacements` (the Angular CLI scaffold already wires this on `ng build`):
+
+```json
+"fileReplacements": [{
+  "replace": "src/environments/environment.ts",
+  "with": "src/environments/environment.prod.ts"
+}]
+```
+
+`src/main.ts`:
+
+```ts
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app/app.component';
+import { appConfig } from './app/app.config';
+import { environment } from './environments/environment';
+
+async function startMocks() {
+  if (environment.production) return;
+  if (!environment.useMocks) return;
+  const { worker } = await import('./mocks/browser');
+  await worker.start({
+    onUnhandledRequest: 'bypass',
+    serviceWorker: { url: '/mockServiceWorker.js' },
+  });
+}
+
+await startMocks();
+bootstrapApplication(AppComponent, appConfig).catch(console.error);
+```
+
+The dynamic `import()` still gives tree-shaking with esbuild. The `fileReplacements` mechanism is Angular's equivalent of "`.env.production` forces the flag off" — it's stronger because the production code literally swaps in `environment.prod.ts`, so even if someone hand-edits the dev file with `useMocks: true`, prod is unaffected.
 
 ### What about "we want to mix mocks + real Bonita"?
 
