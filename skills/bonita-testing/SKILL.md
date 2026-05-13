@@ -97,6 +97,79 @@ project-root/
     └── *.spec.ts                 ← Playwright smoke (under 10 tests is fine)
 ```
 
+## MSW browser mode — OPTIONAL but if added, MUST be production-safe
+
+By default `setup-testing` only installs MSW in **Node mode** (for Vitest/Jest). Some projects also want MSW in **browser mode** so that `npm run dev` works without a real Bonita server (great for demos, parallel-dev with backend, stakeholder reviews).
+
+**If you add browser mode, the following safety pattern is mandatory.** Without it, MSW will run in production and silently intercept real Bonita calls.
+
+### Required setup
+
+1. **Generate the service worker** (one-time):
+   ```bash
+   npx msw init public/ --save
+   ```
+
+2. **Add `src/mocks/browser.ts`** sharing the same handlers as `src/mocks/server.ts`:
+   ```ts
+   import { setupWorker } from 'msw/browser';
+   import { handlers } from './handlers';
+   export const worker = setupWorker(...handlers);
+   ```
+
+3. **Boot MSW inside a double-guarded async function in `main.ts`** (`main.tsx` for React/Solid/Qwik, equivalent for Angular):
+   ```ts
+   async function startMocks() {
+     if (!import.meta.env.DEV) return;                       // ← prod cannot opt in
+     if (import.meta.env.VITE_USE_MOCKS !== 'true') return;  // ← per-dev opt-in
+     const { worker } = await import('@/mocks/browser');     // ← dynamic import: tree-shaken in prod
+     await worker.start({
+       onUnhandledRequest: 'bypass',                         // ← let unmocked calls hit Bonita
+       serviceWorker: { url: '/mockServiceWorker.js' },
+     });
+   }
+   ```
+
+4. **Environment files**:
+   ```
+   .env.development → VITE_USE_MOCKS=true   (committed; ON by default in dev)
+   .env.production  → VITE_USE_MOCKS=false  (committed; defence-in-depth)
+   ```
+
+5. **Exclude the service worker from the production ZIP** — edit `scripts/package-bonita.js`:
+   ```js
+   const EXCLUDED_FROM_ARCHIVE = new Set(['mockServiceWorker.js']);
+   // in addDirToArchive: if (EXCLUDED_FROM_ARCHIVE.has(entry)) continue;
+   ```
+
+### Why all four layers (defence-in-depth)
+
+| Layer | Catches |
+|---|---|
+| `if (!import.meta.env.DEV)` | The agent forgets the env file but uses `npm run build` |
+| `if (VITE_USE_MOCKS !== 'true')` | Mocks would interfere with a dev session pointing at a real Bonita |
+| Dynamic `import('@/mocks/browser')` | Bundle bloat — MSW gets tree-shaken (~150 KB saved) |
+| Exclude `mockServiceWorker.js` from ZIP | The SW file is in `public/` and Vite copies it to `dist/` — packaging step trims it |
+
+### What about "we want to mix mocks + real Bonita"?
+
+Use `onUnhandledRequest: 'bypass'` (default in the pattern above) and **delete handlers** from `src/mocks/handlers.ts` as their real counterparts come online in Bonita:
+
+```
+Day 1: handlers.ts contains [session, user, processes, tasks]  → all mocked
+Day 5: process endpoints deployed in Bonita → remove process handler from handlers.ts
+        → from now on, GET /bonita/API/bpm/process hits the real server
+        → tasks remain mocked until they're ready too
+```
+
+The unit tests keep using the same `handlers.ts`, so removing a handler is a single edit that propagates everywhere.
+
+### Documentation that MUST go in the project
+
+When you add MSW browser mode to a project, also create `docs/MSW.md` inside the project (not in the toolkit) with: (a) how to toggle `VITE_USE_MOCKS`, (b) what's mocked today, (c) how to remove MSW completely when no longer needed. The Provincia Seguros project ships a reference example: see its `docs/MSW.md`.
+
+---
+
 ## MSW Bonita API handlers — reusable across frameworks
 
 Provide these as the default `handlers.ts`. Tests can override per-test with `server.use(...)`:

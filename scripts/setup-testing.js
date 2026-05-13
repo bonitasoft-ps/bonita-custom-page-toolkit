@@ -4,6 +4,18 @@
 // or angular.json. Idempotent: re-running on an already-set-up project is a
 // no-op except for additive updates.
 //
+// NOTE: This script installs MSW in NODE mode only (for tests). If the
+// project also needs MSW in BROWSER mode (so `npm run dev` works without a
+// real Bonita server), follow the production-safe pattern documented in
+// skills/bonita-testing/SKILL.md § "MSW browser mode — OPTIONAL but if
+// added, MUST be production-safe". The four mandatory layers are:
+//   1. `if (!import.meta.env.DEV) return;`  in main.ts/main.tsx
+//   2. `if (import.meta.env.VITE_USE_MOCKS !== 'true') return;`
+//   3. Dynamic `await import('@/mocks/browser')` so Rollup tree-shakes prod
+//   4. Exclude `mockServiceWorker.js` from the production ZIP in
+//      scripts/package-bonita.js (EXCLUDED_FROM_ARCHIVE set)
+// Skipping any layer risks shipping mocks to production.
+//
 // What it adds:
 //   - dev dependencies (framework-specific)
 //   - vitest.config.ts (or jest.config.js for Angular)

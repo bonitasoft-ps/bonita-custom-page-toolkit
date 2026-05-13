@@ -132,6 +132,30 @@ The `setup-testing` script installs the right plugin per framework. ESLint confi
 
 ---
 
+## MSW browser mode (optional add-on)
+
+`setup-testing` installs MSW only in **Node mode** (Vitest/Jest). If you also want MSW in the **browser** so `npm run dev` works without a real Bonita server, follow the production-safe pattern documented in [`../skills/bonita-testing/SKILL.md` § "MSW browser mode"](../skills/bonita-testing/SKILL.md). The pattern is:
+
+1. `npx msw init public/ --save`
+2. `src/mocks/browser.ts` (shares handlers with `src/mocks/server.ts`)
+3. Boot guard in `main.ts`:
+   ```ts
+   if (!import.meta.env.DEV) return;
+   if (import.meta.env.VITE_USE_MOCKS !== 'true') return;
+   const { worker } = await import('@/mocks/browser');
+   await worker.start({ onUnhandledRequest: 'bypass', serviceWorker: { url: '/mockServiceWorker.js' } });
+   ```
+4. `.env.development` → `VITE_USE_MOCKS=true`; `.env.production` → `VITE_USE_MOCKS=false`.
+5. Exclude `mockServiceWorker.js` from the production ZIP in `scripts/package-bonita.js`.
+
+**Mix-and-match real + mock**: keep `onUnhandledRequest: 'bypass'` and **delete handlers** from `handlers.ts` as their real counterparts come online in Bonita. Anything still in `handlers.ts` stays mocked; anything removed hits the real server.
+
+**Production safety**: the four layers (DEV guard + env flag + dynamic import + ZIP exclusion) make it impossible to ship MSW. The bundle is also lighter — MSW (~150 KB) is tree-shaken from production builds. No manual switch is required at deploy time.
+
+Reference implementation: `examples` from client projects ship `docs/MSW.md` next to the source describing what's mocked today and the toggle. See the Provincia Seguros project for a concrete example.
+
+---
+
 ## MSW Bonita API mocks
 
 Default `src/mocks/handlers.ts` ships these mocks:
