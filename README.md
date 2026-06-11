@@ -162,13 +162,16 @@ bonita-custom-page-toolkit/
 │   ├── bonita-solid-app/            SolidJS (createStore, all-CSS-in-app.css rule)
 │   └── bonita-qwik-app/             Qwik SPA mode (useVisibleTask$, module-level helpers)
 │
-├── examples/                    ← Six runnable demo apps — one per framework
+├── examples/                    ← Runnable demo apps
 │   ├── react-directory-bonita/      Turnkey deploy to a specific Application
 │   ├── vue-directory-bonita/
 │   ├── angular-directory-bonita/
 │   ├── svelte-directory-bonita/     Svelte 5 — smallest of the bunch (~22 KB ZIP)
 │   ├── solid-directory-bonita/      SolidJS — tiniest framework runtime (~14 KB gzip)
-│   └── qwik-directory-bonita/       Qwik (SPA mode) — auto-split into 9 lazy chunks
+│   ├── qwik-directory-bonita/       Qwik (SPA mode) — auto-split into 9 lazy chunks
+│   ├── react-task-viewer/           Task-list app (Bonita task API walkthrough)
+│   ├── vue-task-viewer/
+│   └── angular-task-viewer/
 │
 ├── docs/                        ← Reference docs
 │   ├── DEPLOYMENT.md                Deployment — universal (Bonita 7.x friendly)
