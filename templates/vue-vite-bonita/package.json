@@ -9,7 +9,8 @@
     "build": "vue-tsc --noEmit && vite build",
     "build:bonita": "vue-tsc --noEmit && vite build && node scripts/package-bonita.js",
     "dist": "npm run build:bonita && node scripts/copy-docs.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy-page.mjs"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
