@@ -9,7 +9,8 @@
     "build": "tsc -b && vite build",
     "build:bonita": "vite build && node scripts/package-bonita.js",
     "dist": "npm run build:bonita && node scripts/copy-docs.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy-page.mjs"
   },
   "dependencies": {
     "antd": "^5.20.0",

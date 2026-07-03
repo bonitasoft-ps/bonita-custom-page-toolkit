@@ -9,7 +9,8 @@
     "build": "vite build",
     "build:bonita": "vite build && node scripts/package-bonita.js",
     "dist": "npm run build:bonita && node scripts/copy-docs.js",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy-page.mjs"
   },
   "dependencies": {
     "svelte": "^5.0.0",

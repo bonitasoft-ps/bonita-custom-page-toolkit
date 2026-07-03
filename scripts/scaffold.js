@@ -90,8 +90,8 @@ export async function scaffold(flags) {
 }
 
 const TEXT_EXTENSIONS = new Set([
-  '.json', '.js', '.ts', '.tsx', '.vue', '.html', '.css', '.md', '.properties',
-  '.gitignore', '.env', '.bat', '.sh', '.conf', '.yml', '.yaml',
+  '.json', '.js', '.mjs', '.ts', '.tsx', '.vue', '.html', '.css', '.md', '.properties',
+  '.gitignore', '.env', '.bat', '.sh', '.conf', '.yml', '.yaml', '.xml',
 ]);
 
 function isTextFile(filename) {

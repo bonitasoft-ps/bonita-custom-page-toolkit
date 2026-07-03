@@ -105,6 +105,19 @@ npm run e2e              # → Playwright smoke
 
 Full reference in [`docs/TESTING.md`](docs/TESTING.md) and the methodology rationale in [`skills/bonita-testing/SKILL.md`](skills/bonita-testing/SKILL.md).
 
+### Build & deploy with Maven (optional)
+
+Every scaffolded project ships a `pom.xml` so it can build (and optionally deploy)
+via Maven — handy for Bonita Studio project builds / CI without a global Node install:
+
+```bash
+mvn package                                  # build only  → dist/page-<name>.zip
+mvn -Pdeploy install                         # build + deploy to the bundle (:8095)
+mvn -Pdeploy install -Dbonita.url=http://localhost:PORT/bonita   # deploy to Studio
+```
+
+Identical for all 6 frameworks. Full guide: [`docs/MAVEN-BUILD-DEPLOY.md`](docs/MAVEN-BUILD-DEPLOY.md).
+
 ---
 
 ## Quick start (with Claude / MCP)

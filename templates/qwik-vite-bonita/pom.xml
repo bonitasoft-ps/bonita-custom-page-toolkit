@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Optional Maven build for this Bonita custom page.
+  Lets the SPA compile (and optionally deploy) via Maven, so it can plug into a
+  Bonita Studio project build / CI without a global Node install. The npm build
+  is unchanged; Maven only wraps it.
+
+    mvn package                                  # build only -> dist/page-__NAME__.zip
+    mvn -Pdeploy install                         # build + deploy to the bundle (:8095)
+    mvn -Pdeploy install -Dbonita.url=http://localhost:PORT/bonita   # deploy to Studio
+
+  Identical across every framework template: they all expose `npm run dist`
+  producing dist/page-__NAME__.zip. Only the properties below change.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.company.bonita.pages</groupId>
+  <artifactId>__NAME__</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>Bonita custom page - __NAME__</name>
+
+  <properties>
+    <node.version>v20.19.0</node.version>
+    <page.zip>${project.basedir}/dist/page-__NAME__.zip</page.zip>
+    <page.token>custompage___NAME__</page.token>
+    <bonita.url>http://localhost:8095/bonita</bonita.url>
+    <bonita.user>install</bonita.user>
+    <bonita.pass>install</bonita.pass>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.15.1</version>
+        <configuration>
+          <installDirectory>${project.build.directory}</installDirectory>
+        </configuration>
+        <executions>
+          <execution>
+            <id>install-node-and-npm</id>
+            <goals><goal>install-node-and-npm</goal></goals>
+            <configuration><nodeVersion>${node.version}</nodeVersion></configuration>
+          </execution>
+          <execution>
+            <id>npm-ci</id>
+            <goals><goal>npm</goal></goals>
+            <configuration><arguments>ci</arguments></configuration>
+          </execution>
+          <execution>
+            <id>npm-dist</id>
+            <phase>prepare-package</phase>
+            <goals><goal>npm</goal></goals>
+            <configuration><arguments>run dist</arguments></configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Attach the produced zip as a Maven artifact (consumable as a Bonita provided page). -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <id>attach-page-zip</id>
+            <phase>package</phase>
+            <goals><goal>attach-artifact</goal></goals>
+            <configuration>
+              <artifacts>
+                <artifact><file>${page.zip}</file><type>zip</type><classifier>page</classifier></artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- `mvn -Pdeploy install` builds AND deploys the page directly to the target Bonita. -->
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.github.eirslett</groupId>
+            <artifactId>frontend-maven-plugin</artifactId>
+            <version>1.15.1</version>
+            <configuration>
+              <installDirectory>${project.build.directory}</installDirectory>
+            </configuration>
+            <executions>
+              <execution>
+                <id>npm-deploy</id>
+                <phase>install</phase>
+                <goals><goal>npm</goal></goals>
+                <configuration>
+                  <arguments>run deploy</arguments>
+                  <environmentVariables>
+                    <BONITA_URL>${bonita.url}</BONITA_URL>
+                    <BONITA_USER>${bonita.user}</BONITA_USER>
+                    <BONITA_PASS>${bonita.pass}</BONITA_PASS>
+                    <PAGE_ZIP>${page.zip}</PAGE_ZIP>
+                    <PAGE_TOKEN>${page.token}</PAGE_TOKEN>
+                  </environmentVariables>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

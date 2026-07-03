@@ -10,7 +10,8 @@
     "build": "ng build --configuration=production",
     "build:bonita": "ng build --configuration=production && cross-env DIST_DIR=dist/__NAME__/browser node scripts/package-bonita.js",
     "dist": "npm run build:bonita && node scripts/copy-docs.js",
-    "watch": "ng build --watch --configuration=development"
+    "watch": "ng build --watch --configuration=development",
+    "deploy": "node scripts/deploy-page.mjs"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",
