@@ -12,6 +12,9 @@ the seven non-negotiable rules, testing rules, quality gates).
 - `examples/` — runnable apps: `*-directory-bonita` (one per framework) +
   `react|vue|angular-task-viewer`.
 - `bonita-page.sh|.bat` + `docs/CLI.md` — scaffold/wrap without AI.
+- `docs/MAVEN-BUILD-DEPLOY.md` — **build + deploy the page with Maven** (all 6 frameworks).
+  When asked to "mount the custom page with mvn", follow the *Setup recipe* there:
+  scaffold → `mvn package` → `mvn -Pdeploy install -Dbonita.url=…`.
 - `mcp/` — MCP tools for agent-driven generation.
 - `docs/` — deployment guides + wrap checklists (EN/ES/FR).
 

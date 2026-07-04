@@ -49,9 +49,11 @@
             <configuration><nodeVersion>${node.version}</nodeVersion></configuration>
           </execution>
           <execution>
-            <id>npm-ci</id>
+            <id>npm-install</id>
             <goals><goal>npm</goal></goals>
-            <configuration><arguments>ci</arguments></configuration>
+            <!-- `install` works with or without a committed lockfile. Once you commit
+                 package-lock.json, switch to `ci` for reproducible CI builds. -->
+            <configuration><arguments>install</arguments></configuration>
           </execution>
           <execution>
             <id>npm-dist</id>
